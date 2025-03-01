@@ -178,7 +178,8 @@ class SqlDelightAppDataRepository(
                     else -> {
                         val element = elements
                             .sortedBy { it.priority ?: Long.MAX_VALUE }
-                            .first { it.reading == kanjiReading || it.reading == kanaReading }
+                            .firstOrNull { it.reading == kanjiReading || it.reading == kanaReading }
+                            ?: return@mapNotNull null
                         getWord(
                             id = wordId,
                             kanaReading = element.reading.takeIf { element.isKana == 1L },

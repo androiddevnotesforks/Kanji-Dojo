@@ -1,7 +1,5 @@
 package ua.syt0r.kanji.core
 
-import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import ua.syt0r.kanji.core.app_data.AppDataRepository
 import ua.syt0r.kanji.core.app_data.data.FuriganaString
@@ -41,19 +39,17 @@ class VocabCardResolver(
             val kanjiReading = vocabCard.data.kanjiReading
             val kanaReading = vocabCard.data.kanaReading
 
-            val word = async(start = CoroutineStart.LAZY) {
-                vocabCard.data
-                    .run { appDataRepository.findWords(dictionaryId, kanjiReading, kanaReading) }
-                    .firstOrNull()
+            val word = vocabCard.data.run {
+                appDataRepository.getWord(dictionaryId, kanjiReading, kanaReading)
             }
 
             ResolvedVocabCard(
                 dictionaryId = vocabCard.data.dictionaryId,
                 kanjiReading = kanjiReading,
                 kanaReading = kanaReading,
-                furigana = word.await()?.reading?.furigana,
-                meaning = vocabCard.data.meaning ?: word.await()!!.combinedGlossary(),
-                pos = word.await()?.partOfSpeechList ?: emptyList()
+                furigana = word.reading.furigana,
+                meaning = vocabCard.data.meaning ?: word.combinedGlossary(),
+                pos = word.partOfSpeechList
             )
         }
     }

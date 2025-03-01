@@ -1,6 +1,6 @@
 package ua.syt0r.kanji.core.review
 
-import ua.syt0r.kanji.core.user_data.practice.ReviewHistoryRepository
+import ua.syt0r.kanji.core.user_data.database.ReviewHistoryRepository
 
 class ReviewEligibilityUseCase(
     private val reviewHistoryRepository: ReviewHistoryRepository

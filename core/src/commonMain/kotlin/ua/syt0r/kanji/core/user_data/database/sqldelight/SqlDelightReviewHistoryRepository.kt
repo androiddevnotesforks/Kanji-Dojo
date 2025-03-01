@@ -93,8 +93,8 @@ class SqlDelightReviewHistoryRepository(
     ): Map<String, ReviewHistoryStatItem> = userDataDatabaseManager.readTransaction {
         val timeDelimiter = "|"
         val practiceTypeDelimiter = ";"
-        getReviewHistoryStatsForKeys(keys)
-            .executeAsList()
+        keys.chunked(500)
+            .flatMap { getReviewHistoryStatsForKeys(it).executeAsList() }
             .associate {
                 it.key to ReviewHistoryStatItem(
                     key = it.key,
