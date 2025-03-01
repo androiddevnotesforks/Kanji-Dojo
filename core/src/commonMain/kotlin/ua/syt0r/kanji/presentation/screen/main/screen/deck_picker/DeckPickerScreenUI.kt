@@ -193,8 +193,10 @@ private fun LoadedState(
                                 onClick = { position ->
                                     description.detectUrlClick(position, onLinkClick)
                                 },
-                                style = MaterialTheme.typography.bodySmall
-                                    .copy(textAlign = TextAlign.Justify),
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    textAlign = TextAlign.Justify
+                                ),
                             )
                         },
                         modifier = Modifier.animateItem()

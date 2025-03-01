@@ -21,7 +21,7 @@ object AppAssets {
         expectedAssets = listOf(
             Asset(
                 fileName = AppDataAssetFileName,
-                url = "https://github.com/syt0r/Kanji-Dojo-Data/releases/download/v12.0/kanji-dojo-data-base-v12.sql"
+                url = "https://github.com/syt0r/Kanji-Dojo-Data/releases/download/v13.0/kanji-dojo-data-base-v13.sql"
             )
         )
     )

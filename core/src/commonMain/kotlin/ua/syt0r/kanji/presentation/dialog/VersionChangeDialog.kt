@@ -42,7 +42,23 @@ fun VersionChangeDialog(
             LazyColumn(
                 modifier = Modifier.weight(1f).fillMaxWidth()
             ) {
-                version("2.1.5", LocalDate(2025,1,31)) {
+                version("2.1.6", LocalDate(2025, 3, 1)) {
+                    append(
+                        """
+                        - Updated vocab decks behavior
+                        - Now vocab cards correspond to specific word readings instead of dictionary entries
+                        - The reading priority configuration was removed. Now readings can be edited on the deck edit screen
+                        - Updated JLPT vocab decks, removed uncommon variants of the same words
+                        - Added a new vocab info screen
+                        - Added example sentences to letter info screen
+                        - Fixed links not opening on macOS
+                        - Fixed missing sync cancel button in Japanese language
+                        - Added several missing Japanese translations
+                        """.trimIndent()
+                    )
+                }
+
+                version("2.1.5", LocalDate(2025, 1, 31)) {
                     append(
                         """
                         - Updated installers for Windows and Linux, now it's not required to have Java installed
