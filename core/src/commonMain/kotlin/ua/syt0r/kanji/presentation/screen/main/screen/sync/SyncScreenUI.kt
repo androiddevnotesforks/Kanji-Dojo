@@ -78,9 +78,7 @@ fun SyncScreenUI(
         loading = { FancyLoading(Modifier.fillMaxSize().wrapContentSize()) },
         guide = { screenState ->
 
-            ScrollableScreenContainer(
-                contentModifier = Modifier.padding(horizontal = 20.dp)
-            ) {
+            ScrollableScreenContainer {
 
                 Text(
                     text = strings.guideTitle,
@@ -188,7 +186,7 @@ private fun ScreenContainer(
 
         AnimatedContent(
             targetState = state.value,
-            modifier = Modifier.padding(paddingValues),
+            modifier = Modifier.padding(paddingValues).padding(horizontal = 20.dp),
             transitionSpec = snapToBiggerContainerCrossfadeTransitionSpec()
         ) { screenState ->
 

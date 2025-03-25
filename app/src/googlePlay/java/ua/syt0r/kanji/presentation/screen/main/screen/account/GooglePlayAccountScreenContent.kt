@@ -15,9 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
@@ -41,13 +39,11 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
-import ua.syt0r.kanji.presentation.common.AppListItem
 import ua.syt0r.kanji.presentation.common.asActivity
 import ua.syt0r.kanji.presentation.common.clickable
 import ua.syt0r.kanji.presentation.common.copyCentered
 import ua.syt0r.kanji.presentation.common.rememberUrlHandler
 import ua.syt0r.kanji.presentation.common.theme.extraColorScheme
-import ua.syt0r.kanji.presentation.common.theme.neutralTextButtonColors
 import ua.syt0r.kanji.presentation.getMultiplatformViewModel
 import ua.syt0r.kanji.presentation.screen.main.MainNavigationState
 import ua.syt0r.kanji.presentation.screen.main.screen.account.GooglePlayAccountScreenContract.ScreenState
@@ -126,18 +122,6 @@ fun GooglePlayAccountScreenUI(
                             SubscriptionSection(contentState)
                         }
                     }
-
-                    AppListItem(
-                        headlineContent = {
-                            TextButton(
-                                onClick = {},
-                                colors = ButtonDefaults.neutralTextButtonColors()
-                            ) {
-                                Text("Manage subscriptions")
-                                Icon(Icons.AutoMirrored.Filled.OpenInNew, null)
-                            }
-                        }
-                    )
 
                 }
 
