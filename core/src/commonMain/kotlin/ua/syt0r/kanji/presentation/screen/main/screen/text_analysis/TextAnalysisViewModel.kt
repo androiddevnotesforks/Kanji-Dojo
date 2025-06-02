@@ -32,7 +32,8 @@ import ua.syt0r.kanji.core.user_data.database.TextAnalysisRepository
 import ua.syt0r.kanji.error_unknown
 import ua.syt0r.kanji.presentation.common.paginateable
 import ua.syt0r.kanji.presentation.screen.main.screen.text_analysis.TextAnalysisContract.ScreenState
-import ua.syt0r.kanji.presentation.screen.main.screen.text_analysis.parser.IchiranParser
+import ua.syt0r.kanji.presentation.screen.main.screen.text_analysis.use_case.CreateAnalysisResultUseCase
+import ua.syt0r.kanji.presentation.screen.main.screen.text_analysis.use_case.ParseIchiranResponseUseCase
 import ua.syt0r.kanji.text_analysis_preview_text
 import ua.syt0r.kanji.text_analysis_preview_translation
 
@@ -40,14 +41,14 @@ import ua.syt0r.kanji.text_analysis_preview_translation
 class TextAnalysisViewModel(
     private val viewModelScope: CoroutineScope,
     private val accountManager: AccountManager,
-    private val repository: TextAnalysisRepository,
+    private val analysisRepository: TextAnalysisRepository,
+    private val parseIchiranResponseUseCase: ParseIchiranResponseUseCase,
+    private val createAnalysisResultUseCase: CreateAnalysisResultUseCase,
     private val networkApi: NetworkApi
 ) {
 
     private val _state = MutableStateFlow<ScreenState>(ScreenState.Loading)
     val state: StateFlow<ScreenState> = _state
-
-    private val parser = IchiranParser()
 
     init {
 
@@ -84,7 +85,7 @@ class TextAnalysisViewModel(
             TextAnalysisInputState.NotEligible
         )
 
-        val historyState = repository.changesFlow
+        val historyState = analysisRepository.changesFlow
             .onStart { emit(Unit) }
             .map { getLatestHistory() }
             .stateIn(viewModelScope)
@@ -92,12 +93,12 @@ class TextAnalysisViewModel(
         val displayedResultInitial = if (historyState.value.total != 0) {
             null
         } else {
-            TextAnalysisResult.Success(
+            createAnalysisResultUseCase(
                 text = getString(Res.string.text_analysis_preview_text),
                 translation = getString(Res.string.text_analysis_preview_translation),
                 nodeList = Res.readBytes(TextAnalysisContract.PREVIEW_RES_PATH)
                     .decodeToString()
-                    .let { parser.parseIchiranJson(Json.decodeFromString(it)) }
+                    .let { parseIchiranResponseUseCase(Json.decodeFromString(it)) }
             )
         }
 
@@ -139,7 +140,7 @@ class TextAnalysisViewModel(
             .onStart { emit(createNewInputState(requestsChannel)) }
             .stateIn(viewModelScope)
 
-        val historyState = repository.changesFlow
+        val historyState = analysisRepository.changesFlow
             .onStart { emit(Unit) }
             .map { getLatestHistory() }
             .stateIn(viewModelScope)
@@ -163,13 +164,13 @@ class TextAnalysisViewModel(
                     annotatedTextJson = Json.Default.encodeToString(it.value.elements)
                 )
 
-                val result = TextAnalysisResult.Success(
+                val result = createAnalysisResultUseCase(
                     text = input,
                     translation = it.value.translation,
-                    nodeList = parser.parseIchiranJson(it.value.elements)
+                    nodeList = parseIchiranResponseUseCase(it.value.elements)
                 )
 
-                repository.add(textAnalysisData)
+                analysisRepository.add(textAnalysisData)
                 result
             }
             .getOrElse {
@@ -193,8 +194,11 @@ class TextAnalysisViewModel(
         val browseContentMode = TextAnalysisContentMode.Browse(
             furigana = mutableStateOf(true),
             highlight = mutableStateOf(true),
-            switchToSaveWordsMode = launcherLambda {
-                val name = TextAnalysisContentMode.SaveWords::class.simpleName!!
+            alternativeWords = result.let { it as? TextAnalysisResult.Success }
+                ?.alternativeWords
+                ?: emptySet(),
+            switchToSaveLettersMode = launcherLambda {
+                val name = TextAnalysisContentMode.SaveLetters::class.simpleName!!
                 changeContentModeRequestsChannel.send(name)
             }
         )
@@ -210,26 +214,10 @@ class TextAnalysisViewModel(
         changeContentModeRequestsChannel.consumeAsFlow().collect { className ->
             contentMode.value = when (className) {
                 TextAnalysisContentMode.Browse::class.simpleName -> browseContentMode
-                TextAnalysisContentMode.SaveWords::class.simpleName -> {
-                    val elements = result
-                        .let { it as TextAnalysisResult.Success }
-                        .nodeList
-                    createSaveWordsContentMode(
-                        elements = elements,
-                        switchToBrowseMode = launcherLambda {
-                            val name = TextAnalysisContentMode.Browse::class.simpleName!!
-                            changeContentModeRequestsChannel.send(name)
-                        }
-                    )
-                }
 
                 TextAnalysisContentMode.SaveLetters::class.simpleName -> {
-                    val letters = result
-                        .let { it as TextAnalysisResult.Success }
-                        .text
-                        .map { it.toString() }
                     createSaveLettersContentMode(
-                        letters = letters,
+                        result = result as TextAnalysisResult.Success,
                         switchToBrowseMode = launcherLambda {
                             val name = TextAnalysisContentMode.Browse::class.simpleName!!
                             changeContentModeRequestsChannel.send(name)
@@ -244,40 +232,15 @@ class TextAnalysisViewModel(
 
     }
 
-    private fun createSaveWordsContentMode(
-        elements: List<TextAnalysisNode>,
-        switchToBrowseMode: () -> Unit
-    ): TextAnalysisContentMode.SaveWords {
-        val selectedWords = mutableStateOf(emptySet<TextAnalysisNode.Word>())
-        return TextAnalysisContentMode.SaveWords(
-            selected = selectedWords,
-            toggleSelection = { word ->
-                selectedWords.value = selectedWords.value.let {
-                    if (it.contains(word)) it.minus(word)
-                    else it.plus(word)
-                }
-            },
-            selectAll = {
-                selectedWords.value = elements
-                    .filterIsInstance<TextAnalysisNode.Word>()
-                    .toSet()
-            },
-            selectNone = {
-                selectedWords.value = emptySet()
-            },
-            switchToBrowseMode = switchToBrowseMode
-        )
-    }
-
     private fun createSaveLettersContentMode(
-        letters: List<String>,
+        result: TextAnalysisResult.Success,
         switchToBrowseMode: () -> Unit
     ): TextAnalysisContentMode.SaveLetters {
-        val lettersSet = letters.toSet()
+        val lettersSet = result.letters.toSet()
         val selected = mutableStateOf(emptySet<String>())
 
         return TextAnalysisContentMode.SaveLetters(
-            letters = letters,
+            letters = result.letters,
             selected = selected,
             toggleSelection = { word ->
                 selected.value = selected.value.let {
@@ -288,11 +251,9 @@ class TextAnalysisViewModel(
             selectAll = { selected.value = lettersSet },
             selectNone = { selected.value = emptySet() },
             selectAllKanji = {
-                selected.value = lettersSet.asSequence()
-                    .filter { it.first().isKanji() }
-                    .map { it.toString() }
-                    .toSet()
-
+                selected.value = selected.value.plus(
+                    lettersSet.filter { it.first().isKanji() }
+                )
             },
             switchToBrowseMode = switchToBrowseMode
         )
@@ -312,19 +273,19 @@ class TextAnalysisViewModel(
         )
     }
 
-    private suspend fun getLatestHistory() = paginateable(
+    private suspend fun getLatestHistory() = paginateable<TextAnalysisResult.Success>(
         coroutineScope = viewModelScope,
-        limit = repository.getCount().toInt(),
+        limit = analysisRepository.getCount().toInt(),
         loadMoreImmediately = true
     ) { offset ->
-        repository.get(
+        analysisRepository.get(
             offset = offset.toLong(),
             limit = 10
         ).map {
-            val nodeList = parser.parseIchiranJson(
+            val nodeList = parseIchiranResponseUseCase(
                 Json.Default.decodeFromString(it.annotatedTextJson)
             )
-            TextAnalysisResult.Success(
+            createAnalysisResultUseCase(
                 text = it.text,
                 translation = it.translation,
                 nodeList = nodeList

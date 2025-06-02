@@ -1,4 +1,4 @@
-package ua.syt0r.kanji.presentation.screen.main.screen.text_analysis.parser
+package ua.syt0r.kanji.presentation.screen.main.screen.text_analysis.use_case
 
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -14,9 +14,13 @@ import ua.syt0r.kanji.core.app_data.data.buildFuriganaString
 import ua.syt0r.kanji.core.logger.Logger
 import ua.syt0r.kanji.presentation.screen.main.screen.text_analysis.TextAnalysisNode
 
-class IchiranParser {
+interface ParseIchiranResponseUseCase {
+    operator fun invoke(jsonArray: JsonArray): List<TextAnalysisNode>
+}
 
-    fun parseIchiranJson(jsonArray: JsonArray): List<TextAnalysisNode> {
+class DefaultParseIchiranResponseUseCase : ParseIchiranResponseUseCase {
+
+    override operator fun invoke(jsonArray: JsonArray): List<TextAnalysisNode> {
         return jsonArray.flatMap { sentencePart -> parseSentencePart(sentencePart) }
     }
 
@@ -61,8 +65,6 @@ class IchiranParser {
         return when {
             alternatives != null -> {
                 val alternativeNodes = alternatives.map { it.jsonObject.singleOrCompound() }
-                val compounds = alternativeNodes.filterIsInstance<TextAnalysisNode.Compound>()
-                val compound = compounds.firstOrNull()
                 TextAnalysisNode.AlternativeGroup(alternativeNodes)
             }
 
@@ -76,7 +78,7 @@ class IchiranParser {
             compound != null -> {
                 val components = getValue("components").jsonArray
                 TextAnalysisNode.Compound(
-                    words = components.map { it.jsonObject.asWordNode() }
+                    childNodeList = components.map { it.jsonObject.asWordNode() }
                 )
             }
 

@@ -18,8 +18,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -41,12 +39,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import org.jetbrains.compose.resources.stringResource
 import ua.syt0r.kanji.Res
 import ua.syt0r.kanji.core.user_data.database.VocabCardData
+import ua.syt0r.kanji.presentation.common.AppCheckBox
 import ua.syt0r.kanji.presentation.common.AppDropdownMenu
 import ua.syt0r.kanji.presentation.common.AppDropdownMenuItem
 import ua.syt0r.kanji.presentation.common.AppListItem
@@ -313,22 +310,7 @@ private fun CompactCheckBoxRow(
             modifier = Modifier.weight(1f)
         )
 
-        val icon: ImageVector
-        val color: Color
-
-        when {
-            checked.value -> {
-                icon = Icons.Default.CheckCircle
-                color = MaterialTheme.colorScheme.primary
-            }
-
-            else -> {
-                icon = Icons.Outlined.Circle
-                color = MaterialTheme.colorScheme.surfaceVariant
-            }
-        }
-
-        Icon(imageVector = icon, contentDescription = null, tint = color)
+        AppCheckBox(checked = checked.value)
 
     }
 }

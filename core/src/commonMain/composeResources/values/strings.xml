@@ -53,8 +53,8 @@
     <string name="text_analysis_configuration_translation_provider">Translation Provider</string>
 
     <string name="text_analysis_action_furigana">Furigana</string>
-    <string name="text_analysis_action_highlight">Highlight</string>
-    <string name="text_analysis_action_save_words">Save Words</string>
+    <string name="text_analysis_action_highlight">Highlight Part of Speech</string>
+    <string name="text_analysis_action_save_letters">Save Letters</string>
 
     <string name="text_analysis_save_words_counter">Selected words: %1$s</string>
     <string name="text_analysis_save_words_cancel">Cancel</string>
@@ -65,6 +65,7 @@
     <string name="text_analysis_save_letters_cancel">Cancel</string>
     <string name="text_analysis_save_letters_apply">Add To Deck</string>
 
+    <string name="text_analysis_alternative_words">Alternative words: </string>
     <string name="text_analysis_word_parse_error">Error</string>
 
     <string name="text_analysis_preview_text">富士山は日本の象徴で、登山シーズンになると多くの登山者が頂上を目指します。その絶景は一生の思い出になります。</string>
@@ -80,6 +81,8 @@
     <string name="practice_summary_empty">No reviews</string>
     <string name="practice_summary_button">Finish</string>
 
+    <string name="save_letters_dialog_title">Add letters to deck</string>
+    <string name="save_letters_dialog_contains">Already contains: %1$s</string>
     <string name="save_word_dialog_title">Add %1$s to vocab deck</string>
     <string name="save_word_dialog_contains_hint">Already contains</string>
     <string name="save_word_dialog_create_deck_button">Create New Deck</string>

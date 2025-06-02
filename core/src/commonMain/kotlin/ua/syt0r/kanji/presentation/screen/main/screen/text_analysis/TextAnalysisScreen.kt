@@ -43,7 +43,6 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Bookmarks
 import androidx.compose.material.icons.outlined.BorderColor
 import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Deselect
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.History
@@ -90,6 +89,7 @@ import org.jetbrains.compose.resources.stringResource
 import ua.syt0r.kanji.Res
 import ua.syt0r.kanji.core.app_data.data.formattedVocabStringReading
 import ua.syt0r.kanji.dialog_cancel
+import ua.syt0r.kanji.presentation.common.AppCheckBox
 import ua.syt0r.kanji.presentation.common.AppDropdownMenu
 import ua.syt0r.kanji.presentation.common.AppDropdownMenuItem
 import ua.syt0r.kanji.presentation.common.AppListItem
@@ -104,6 +104,8 @@ import ua.syt0r.kanji.presentation.common.theme.extraColorScheme
 import ua.syt0r.kanji.presentation.common.ui.FancyLoading
 import ua.syt0r.kanji.presentation.common.ui.FuriganaText
 import ua.syt0r.kanji.presentation.common.ui.VerticalScrollbar
+import ua.syt0r.kanji.presentation.common.ui.kanji.HighlightedLetter
+import ua.syt0r.kanji.presentation.dialog.SaveLettersDialog
 import ua.syt0r.kanji.presentation.getMultiplatformViewModel
 import ua.syt0r.kanji.presentation.screen.main.MainDestination
 import ua.syt0r.kanji.presentation.screen.main.MainNavigationState
@@ -112,7 +114,8 @@ import ua.syt0r.kanji.presentation.screen.main.screen.vocab_card.SuggestedVocabC
 import ua.syt0r.kanji.presentation.screen.main.screen.vocab_card.VocabCardScreenMode
 import ua.syt0r.kanji.text_analysis_action_furigana
 import ua.syt0r.kanji.text_analysis_action_highlight
-import ua.syt0r.kanji.text_analysis_action_save_words
+import ua.syt0r.kanji.text_analysis_action_save_letters
+import ua.syt0r.kanji.text_analysis_alternative_words
 import ua.syt0r.kanji.text_analysis_configuration_analysis_provider
 import ua.syt0r.kanji.text_analysis_configuration_title
 import ua.syt0r.kanji.text_analysis_configuration_translation_provider
@@ -126,9 +129,6 @@ import ua.syt0r.kanji.text_analysis_save_letters_apply
 import ua.syt0r.kanji.text_analysis_save_letters_cancel
 import ua.syt0r.kanji.text_analysis_save_letters_counter
 import ua.syt0r.kanji.text_analysis_save_letters_select_kanji
-import ua.syt0r.kanji.text_analysis_save_words_apply
-import ua.syt0r.kanji.text_analysis_save_words_cancel
-import ua.syt0r.kanji.text_analysis_save_words_counter
 import ua.syt0r.kanji.text_analysis_title
 import ua.syt0r.kanji.text_analysis_translation_placeholder
 import ua.syt0r.kanji.text_analysis_word_parse_error
@@ -245,15 +245,14 @@ private fun AnalysisResultSection(
     modifier: Modifier,
 ) {
 
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .verticalScroll(rememberScrollState())
-            .padding(vertical = Dimens.SpacingSmall)
-    ) {
-
-        when (val currentContentState = state.value) {
-            TextAnalysisContentState.Empty -> {
+    when (val currentContentState = state.value) {
+        TextAnalysisContentState.Empty ->
+            Column(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(vertical = Dimens.SpacingSmall)
+            ) {
                 Spacer(Modifier.weight(1f))
                 HorizontalDivider()
                 Text(
@@ -264,11 +263,18 @@ private fun AnalysisResultSection(
                 Spacer(Modifier.weight(1f))
             }
 
-            is TextAnalysisContentState.Loaded -> {
+        is TextAnalysisContentState.Loaded -> {
 
-                when (val result = currentContentState.result) {
+            when (val result = currentContentState.result) {
 
-                    is TextAnalysisResult.Success -> {
+                is TextAnalysisResult.Success -> {
+
+                    Column(
+                        modifier = modifier
+                            .fillMaxWidth()
+                            .verticalScroll(rememberScrollState())
+                            .padding(vertical = Dimens.SpacingSmall)
+                    ) {
 
                         TextAnalysisHeader(currentContentState)
 
@@ -281,34 +287,33 @@ private fun AnalysisResultSection(
 
                     }
 
-                    is TextAnalysisResult.Error -> {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(Dimens.SpacingMid),
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxWidth()
-                                .wrapContentSize()
-                                .widthIn(max = Dimens.ScreenWidth)
-                                .verticalScroll(rememberScrollState())
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.ErrorOutline,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.alignBy { it.measuredHeight * 4 / 5 }
-                            )
-                            SelectionContainer(
-                                modifier = Modifier.alignByBaseline()
-                            ) {
-                                Text(text = result.message)
-                            }
-                        }
+                }
 
+                is TextAnalysisResult.Error -> {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(Dimens.SpacingMid),
+                        modifier = modifier
+                            .fillMaxWidth()
+                            .wrapContentSize()
+                            .widthIn(max = Dimens.ScreenWidth)
+                            .verticalScroll(rememberScrollState())
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.ErrorOutline,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.alignBy { it.measuredHeight * 4 / 5 }
+                        )
+                        SelectionContainer(
+                            modifier = Modifier.alignByBaseline()
+                        ) {
+                            Text(text = result.message)
+                        }
                     }
+
                 }
             }
-
         }
 
     }
@@ -567,8 +572,7 @@ private fun TextAnalysisHeader(contentState: TextAnalysisContentState.Loaded) {
                                 text = stringResource(Res.string.text_analysis_action_furigana),
                                 modifier = Modifier.weight(1f)
                             )
-                            if (furigana) Icon(Icons.Outlined.Check, null)
-                            else Icon(Icons.Outlined.Close, null)
+                            AppCheckBox(checked = furigana)
                         }
                         AppDropdownMenuItem(
                             onClick = { highlight = !highlight }
@@ -578,69 +582,11 @@ private fun TextAnalysisHeader(contentState: TextAnalysisContentState.Loaded) {
                                 text = stringResource(Res.string.text_analysis_action_highlight),
                                 modifier = Modifier.weight(1f)
                             )
-                            if (highlight) Icon(Icons.Outlined.Check, null)
-                            else Icon(Icons.Outlined.Close, null)
+                            AppCheckBox(checked = highlight)
                         }
-                        return@AppDropdownMenu
-                        AppDropdownMenuItem(currentMode.switchToSaveWordsMode) {
+                        AppDropdownMenuItem(currentMode.switchToSaveLettersMode) {
                             Icon(Icons.Outlined.Bookmarks, null)
-                            Text(stringResource(Res.string.text_analysis_action_save_words))
-                        }
-                    }
-
-                }
-
-            }
-
-            is TextAnalysisContentMode.SaveWords -> {
-
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-
-                    val wordsCount = currentMode.selected.value.size
-
-                    Text(
-                        text = stringResource(
-                            Res.string.text_analysis_save_words_counter,
-                            wordsCount.toString()
-                        ),
-                        modifier = Modifier
-                            .align(Alignment.CenterVertically)
-                            .padding(end = 8.dp),
-                        style = MaterialTheme.typography.labelMedium.copyCentered()
-                    )
-
-                    IconButton(
-                        onClick = currentMode.selectNone,
-                        modifier = Modifier.align(Alignment.CenterVertically),
-                    ) { Icon(Icons.Outlined.Deselect, null) }
-
-                    IconButton(
-                        onClick = currentMode.selectAll,
-                        modifier = Modifier.align(Alignment.CenterVertically)
-                    ) { Icon(Icons.Outlined.SelectAll, null) }
-
-                    Row(
-                        modifier = Modifier
-                            .weight(1f)
-                            .wrapContentWidth(Alignment.End)
-                            .width(IntrinsicSize.Max)
-                            .height(IntrinsicSize.Max)
-                    ) {
-                        TextButton(
-                            onClick = currentMode.switchToBrowseMode,
-                            modifier = Modifier.align(Alignment.CenterVertically)
-                        ) {
-                            Text(stringResource(Res.string.text_analysis_save_words_cancel))
-                        }
-
-                        TextButton(
-                            onClick = { },
-                            modifier = Modifier.align(Alignment.CenterVertically),
-                            enabled = wordsCount > 0
-                        ) {
-                            Text(stringResource(Res.string.text_analysis_save_words_apply))
+                            Text(stringResource(Res.string.text_analysis_action_save_letters))
                         }
                     }
 
@@ -649,6 +595,15 @@ private fun TextAnalysisHeader(contentState: TextAnalysisContentState.Loaded) {
             }
 
             is TextAnalysisContentMode.SaveLetters -> {
+
+                var lettersToSave by remember { mutableStateOf<List<String>?>(null) }
+                lettersToSave?.let {
+                    SaveLettersDialog(
+                        letters = it,
+                        onSaved = { currentMode.switchToBrowseMode },
+                        onDismissRequest = { lettersToSave = null }
+                    )
+                }
 
                 FlowRow(
                     modifier = Modifier.fillMaxWidth()
@@ -699,7 +654,7 @@ private fun TextAnalysisHeader(contentState: TextAnalysisContentState.Loaded) {
                         }
 
                         TextButton(
-                            onClick = { },
+                            onClick = { lettersToSave = currentMode.selected.value.toList() },
                             modifier = Modifier.align(Alignment.CenterVertically),
                             enabled = count > 0
                         ) {
@@ -726,7 +681,7 @@ private fun ColumnScope.AnalysisContent(
 ) {
 
     when (displayMode) {
-        is TextAnalysisContentMode.WordsDisplay -> {
+        is TextAnalysisContentMode.Browse -> {
             FlowRow(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -740,35 +695,86 @@ private fun ColumnScope.AnalysisContent(
                     )
                 }
             }
+            if (displayMode.alternativeWords.isNotEmpty()) {
+                FlowRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = Dimens.SpacingMid)
+                ) {
+                    Text(
+                        text = stringResource(Res.string.text_analysis_alternative_words),
+                        modifier = Modifier.alignByBaseline()
+                    )
+                    displayMode.alternativeWords.forEach {
+                        AnalysisNode(
+                            node = it,
+                            displayMode = displayMode,
+                            saveWord = saveWord
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            HorizontalDivider()
+
+            SelectionContainer(
+                modifier = Modifier.padding(vertical = Dimens.SpacingMid)
+            ) {
+                Text(
+                    text = translation,
+                    style = translationTextStyle
+                )
+            }
+
         }
 
         is TextAnalysisContentMode.SaveLetters -> {
+
             FlowRow(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = Dimens.SpacingMid)
+                    .padding(bottom = Dimens.SpacingMid),
+                verticalArrangement = Arrangement.spacedBy(Dimens.SpacingSmall),
+                horizontalArrangement = Arrangement.spacedBy(Dimens.SpacingSmall)
             ) {
+
                 displayMode.letters.forEach {
-                    TODO("implement letters saving")
+                    Column(
+                        modifier = Modifier
+                            .width(IntrinsicSize.Max)
+                            .alignByBaseline(),
+                        verticalArrangement = Arrangement.spacedBy(Dimens.SpacingSmall)
+                    ) {
+
+                        HighlightedLetter(
+                            letter = it,
+                            onClick = { displayMode.toggleSelection(it) },
+                            containerColor = MaterialTheme.colorScheme.surface
+                        )
+
+                        val highlightColor = when {
+                            displayMode.selected.value.contains(it) -> MaterialTheme.colorScheme.primary
+                            else -> MaterialTheme.colorScheme.surfaceDim
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(Dimens.SpacingTiny)
+                                .background(highlightColor, CircleShape)
+                        )
+
+                    }
+
                 }
             }
         }
+
     }
 
     Spacer(modifier = Modifier.weight(1f))
-
-    HorizontalDivider()
-
-    SelectionContainer(
-        modifier = Modifier.padding(vertical = Dimens.SpacingMid)
-    ) {
-        Text(
-            text = translation,
-            style = translationTextStyle
-        )
-    }
-
-    Box(modifier = Modifier.weight(1f))
 
 }
 
@@ -777,7 +783,7 @@ private fun ColumnScope.AnalysisContent(
 @Composable
 private fun RowScope.AnalysisNode(
     node: TextAnalysisNode,
-    displayMode: TextAnalysisContentMode.WordsDisplay,
+    displayMode: TextAnalysisContentMode.Browse,
     saveWord: (TextAnalysisNode.Word) -> Unit
 ) {
     when (node) {
@@ -791,7 +797,7 @@ private fun RowScope.AnalysisNode(
         }
 
         is TextAnalysisNode.Compound -> {
-            node.words.forEach { AnalysisNode(it, displayMode, saveWord) }
+            node.childNodeList.forEach { AnalysisNode(it, displayMode, saveWord) }
         }
 
         is TextAnalysisNode.Error -> Column(
@@ -812,14 +818,14 @@ private fun RowScope.AnalysisNode(
         }
 
         is TextAnalysisNode.AlternativeGroup -> {
-            val displayNode = node.nodeList.firstOrNull()
+            val displayNode = node.childNodeList.firstOrNull()
             displayNode?.let { AnalysisNode(it, displayMode, saveWord) }
         }
     }
 }
 
 @Composable
-fun TextAnalysisNode.PartOfSpeech.toHighlightColor(
+private fun TextAnalysisNode.PartOfSpeech.toHighlightColor(
     noHighlightColor: Color = Color.Unspecified
 ): Color {
     return when (this) {
@@ -833,7 +839,7 @@ fun TextAnalysisNode.PartOfSpeech.toHighlightColor(
 @Composable
 private fun RowScope.WordNode(
     node: TextAnalysisNode.Word,
-    displayMode: TextAnalysisContentMode.WordsDisplay,
+    displayMode: TextAnalysisContentMode.Browse,
     saveWord: (TextAnalysisNode.Word) -> Unit
 ) {
 
@@ -842,17 +848,7 @@ private fun RowScope.WordNode(
     Box(
         modifier = Modifier
             .clip(MaterialTheme.shapes.small)
-            .clickable {
-                when (displayMode) {
-                    is TextAnalysisContentMode.Browse -> {
-                        showPopup.value = true
-                    }
-
-                    is TextAnalysisContentMode.SaveWords -> {
-                        displayMode.toggleSelection(node)
-                    }
-                }
-            }
+            .clickable { showPopup.value = true }
             .padding(Dimens.SpacingMid, Dimens.SpacingSmall)
             .width(IntrinsicSize.Max)
             .alignByBaseline()
@@ -871,27 +867,16 @@ private fun RowScope.WordNode(
         ) {
 
             when {
-                node.reading.furigana != null &&
-                        displayMode is TextAnalysisContentMode.Browse &&
-                        displayMode.furigana.value -> FuriganaText(node.reading.furigana)
+                node.reading.furigana != null && displayMode.furigana.value -> {
+                    FuriganaText(node.reading.furigana)
+                }
 
                 else -> Text(node.text)
             }
 
-            val highlightColor: Color?
-
-            when (displayMode) {
-                is TextAnalysisContentMode.Browse -> {
-                    highlightColor = if (!displayMode.highlight.value) null
-                    else node.highlightPartOfSpeech
-                        ?.toHighlightColor(MaterialTheme.colorScheme.surface)
-                }
-
-                is TextAnalysisContentMode.SaveWords -> {
-                    highlightColor = if (displayMode.selected.value.contains(node))
-                        MaterialTheme.extraColorScheme.success
-                    else MaterialTheme.colorScheme.surfaceVariant
-                }
+            val highlightColor: Color? = when {
+                !displayMode.highlight.value -> null
+                else -> node.highlightPartOfSpeech?.toHighlightColor(MaterialTheme.colorScheme.surface)
             }
 
             if (highlightColor != null) {

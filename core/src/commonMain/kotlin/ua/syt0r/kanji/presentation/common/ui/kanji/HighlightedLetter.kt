@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ua.syt0r.kanji.presentation.common.copyCentered
@@ -23,6 +24,7 @@ fun HighlightedLetter(
     letter: String,
     onClick: ((String) -> Unit)? = null,
     aspectRatioConstraintOrientation: Orientation = Orientation.Horizontal,
+    containerColor: Color = MaterialTheme.colorScheme.surfaceVariant,
     modifier: Modifier = Modifier
 ) {
 
@@ -38,7 +40,7 @@ fun HighlightedLetter(
             .then(modifier)
             .clip(MaterialTheme.shapes.small)
             .aspectRatio(1f, true)
-            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .background(containerColor)
             .clickable(enabled = onClick != null) { onClick!!(letter) }
             .padding(8.dp)
             .wrapContentSize(unbounded = true),

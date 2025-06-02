@@ -34,21 +34,12 @@ sealed interface TextAnalysisContentState {
 
 sealed interface TextAnalysisContentMode {
 
-    sealed interface WordsDisplay
-
     data class Browse(
         val furigana: MutableState<Boolean>,
         val highlight: MutableState<Boolean>,
-        val switchToSaveWordsMode: () -> Unit
-    ) : TextAnalysisContentMode, WordsDisplay
-
-    data class SaveWords(
-        val selected: State<Set<TextAnalysisNode.Word>>,
-        val toggleSelection: (TextAnalysisNode.Word) -> Unit,
-        val selectAll: () -> Unit,
-        val selectNone: () -> Unit,
-        val switchToBrowseMode: () -> Unit
-    ) : TextAnalysisContentMode, WordsDisplay
+        val alternativeWords: Set<TextAnalysisNode.Word>,
+        val switchToSaveLettersMode: () -> Unit
+    ) : TextAnalysisContentMode
 
     data class SaveLetters(
         val letters: List<String>,
@@ -67,7 +58,9 @@ sealed interface TextAnalysisResult {
     data class Success(
         val text: String,
         val translation: String,
-        val nodeList: List<TextAnalysisNode>
+        val nodeList: List<TextAnalysisNode>,
+        val letters: List<String>,
+        val alternativeWords: Set<TextAnalysisNode.Word>
     ) : TextAnalysisResult
 
     data class Error(
@@ -93,7 +86,7 @@ sealed interface TextAnalysisNode {
     ) : TextAnalysisNode
 
     data class Compound(
-        val words: List<TextAnalysisNode>
+        val childNodeList: List<TextAnalysisNode>
     ) : TextAnalysisNode
 
     data class Error(
@@ -101,7 +94,7 @@ sealed interface TextAnalysisNode {
     ) : TextAnalysisNode
 
     data class AlternativeGroup(
-        val nodeList: List<TextAnalysisNode>
+        val childNodeList: List<TextAnalysisNode>
     ) : TextAnalysisNode
 
     data class Glossary(
