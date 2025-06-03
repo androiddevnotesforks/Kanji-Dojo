@@ -11,6 +11,7 @@ import ua.syt0r.kanji.discord
 import ua.syt0r.kanji.practice_type_flashcard
 import ua.syt0r.kanji.practice_type_reading_picker
 import ua.syt0r.kanji.practice_type_writing
+import ua.syt0r.kanji.presentation.screen.main.screen.practice_common.PracticeConfigurationCard
 import ua.syt0r.kanji.social_discord
 import ua.syt0r.kanji.social_youtube
 import ua.syt0r.kanji.study_category_letter
@@ -29,25 +30,11 @@ sealed interface StudyTargetProgress {
 
 }
 
-sealed interface StudyTargetPracticeOptions {
-    val newToDeckIdMap: Map<out Any, Long>
-    val dueToDeckIdMap: Map<out Any, Long>
-    val combined: Map<out Any, Long>
-}
-
-data class LetterStudyTargetPracticeOptions(
-    override val newToDeckIdMap: Map<String, Long>,
-    override val dueToDeckIdMap: Map<String, Long>
-) : StudyTargetPracticeOptions {
-    override val combined: Map<String, Long> = newToDeckIdMap + dueToDeckIdMap
-}
-
-data class VocabStudyTargetPracticeOptions(
-    override val newToDeckIdMap: Map<Long, Long>,
-    override val dueToDeckIdMap: Map<Long, Long>
-) : StudyTargetPracticeOptions {
-    override val combined: Map<Long, Long> = newToDeckIdMap + dueToDeckIdMap
-}
+data class StudyTargetPracticeOptions(
+    val newCards: List<PracticeConfigurationCard>,
+    val dueCards: List<PracticeConfigurationCard>,
+    val combinedCards: List<PracticeConfigurationCard>
+)
 
 data class StudyTargetState(
     val studyTarget: StudyTarget,

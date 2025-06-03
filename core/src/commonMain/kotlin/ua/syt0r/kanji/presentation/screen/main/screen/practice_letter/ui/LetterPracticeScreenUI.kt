@@ -258,7 +258,7 @@ private fun ConfiguringState(
                 )
 
                 PracticeConfigurationCharactersPreview(
-                    characters = configuration.selectorState.sortedList.value.map { it.first },
+                    characters = configuration.unfilteredResultCardsList.value.map { it.letter },
                     selectedCharactersCount = configuration.selectorState.selectedCountIntState
                 )
 
@@ -314,7 +314,7 @@ private fun ConfiguringState(
                 )
 
                 PracticeConfigurationCharactersPreview(
-                    characters = configuration.selectorState.sortedList.value.map { it.first },
+                    characters = configuration.unfilteredResultCardsList.value.map { it.letter },
                     selectedCharactersCount = configuration.selectorState.selectedCountIntState
                 )
 

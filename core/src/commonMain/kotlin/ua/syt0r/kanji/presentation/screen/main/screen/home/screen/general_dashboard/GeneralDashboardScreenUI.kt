@@ -101,6 +101,7 @@ import ua.syt0r.kanji.presentation.common.ui.Orientation
 import ua.syt0r.kanji.presentation.screen.main.MainDestination
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.general_dashboard.GeneralDashboardScreenContract.ScreenState
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.general_dashboard.ui.TutorialDialog
+import ua.syt0r.kanji.presentation.screen.main.screen.practice_common.PracticeConfigurationCard
 import ua.syt0r.kanji.presentation.screen.main.screen.practice_letter.data.LetterPracticeScreenConfiguration
 import ua.syt0r.kanji.presentation.screen.main.screen.practice_vocab.data.VocabPracticeScreenConfiguration
 import ua.syt0r.kanji.srs_status_due
@@ -374,15 +375,15 @@ private fun StudyTargets(
                             is VocabPracticeType -> navigateToCreateVocabDeck()
                         }
                     },
-                    startPractice = { map ->
-                        if (map.isEmpty()) {
+                    startPractice = { cards ->
+                        if (cards.isEmpty()) {
                             notifyNothingLeftToStudy()
                             return@StudyTargetItem
                         }
                         when (val practiceType = it.studyTarget.practiceType) {
                             is LetterPracticeType -> {
                                 val configuration = LetterPracticeScreenConfiguration(
-                                    characterToDeckIdMap = map as Map<String, Long>,
+                                    cards = cards as List<LetterPracticeScreenConfiguration.Card>,
                                     practiceType = ScreenLetterPracticeType.from(practiceType)
                                 )
                                 val destination = MainDestination.LetterPractice(configuration)
@@ -391,7 +392,7 @@ private fun StudyTargets(
 
                             is VocabPracticeType -> {
                                 val configuration = VocabPracticeScreenConfiguration(
-                                    wordIdToDeckIdMap = map as Map<Long, Long>,
+                                    cards = cards as List<VocabPracticeScreenConfiguration.Card>,
                                     practiceType = ScreenVocabPracticeType.from(practiceType)
                                 )
                                 val destination = MainDestination.VocabPractice(configuration)
@@ -412,7 +413,7 @@ private fun StudyTargets(
 fun StudyTargetItem(
     studyTargetState: StudyTargetState,
     createDeck: () -> Unit,
-    startPractice: (Map<out Any, Long>) -> Unit
+    startPractice: (List<PracticeConfigurationCard>) -> Unit
 ) {
 
     val studyTarget = studyTargetState.studyTarget
@@ -423,7 +424,7 @@ fun StudyTargetItem(
             when (studyProgress) {
                 StudyTargetProgress.NoDecks -> createDeck()
                 is StudyTargetProgress.WithDecks -> {
-                    startPractice(studyProgress.options.combined)
+                    startPractice(studyProgress.options.combinedCards)
                 }
             }
         },
@@ -459,15 +460,15 @@ fun StudyTargetItem(
                     ClickableStudyRow(
                         imageVector = Icons.Outlined.School,
                         title = stringResource(Res.string.srs_status_new),
-                        count = studyProgress.options.newToDeckIdMap.size,
-                        onClick = { startPractice(studyProgress.options.newToDeckIdMap) }
+                        count = studyProgress.options.newCards.size,
+                        onClick = { startPractice(studyProgress.options.newCards) }
                     )
 
                     ClickableStudyRow(
                         imageVector = Icons.Outlined.Schedule,
                         title = stringResource(Res.string.srs_status_due),
-                        count = studyProgress.options.dueToDeckIdMap.size,
-                        onClick = { startPractice(studyProgress.options.dueToDeckIdMap) }
+                        count = studyProgress.options.dueCards.size,
+                        onClick = { startPractice(studyProgress.options.dueCards) }
                     )
 
                 }

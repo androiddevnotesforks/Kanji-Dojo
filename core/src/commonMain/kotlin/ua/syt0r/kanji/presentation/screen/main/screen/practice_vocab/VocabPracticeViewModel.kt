@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 import ua.syt0r.kanji.core.analytics.AnalyticsManager
 import ua.syt0r.kanji.core.user_data.preferences.PreferencesContract
 import ua.syt0r.kanji.presentation.screen.main.screen.practice_common.PracticeAnswer
-import ua.syt0r.kanji.presentation.screen.main.screen.practice_common.PracticeConfigurationItemsSelectorState
+import ua.syt0r.kanji.presentation.screen.main.screen.practice_common.PracticeConfigurationCardsSelectorState
 import ua.syt0r.kanji.presentation.screen.main.screen.practice_vocab.VocabPracticeScreenContract.ScreenState
 import ua.syt0r.kanji.presentation.screen.main.screen.practice_vocab.data.MutableVocabReviewState
 import ua.syt0r.kanji.presentation.screen.main.screen.practice_vocab.data.SelectedReadingAnswer
@@ -43,13 +43,16 @@ class VocabPracticeViewModel(
         this.configuration = configuration
 
         viewModelScope.launch {
+
+            val selectorState = PracticeConfigurationCardsSelectorState(
+                cardsCount = configuration.cards.size,
+                shuffle = mutableStateOf(practicePreferences.shuffle.get()),
+                newCardsOrder = mutableStateOf(practicePreferences.newCardsOrder.get())
+            )
+
             _state.value = ScreenState.Configuration(
                 practiceType = configuration.practiceType,
-                itemsSelectorState = PracticeConfigurationItemsSelectorState(
-                    itemToDeckIdMap = configuration.wordIdToDeckIdMap.toList(),
-                    shuffle = true
-                ),
-                shuffle = mutableStateOf(true),
+                cardsSelectorState = selectorState,
                 flashcard = VocabPracticeConfiguration.Flashcard(
                     translationInFront = mutableStateOf(
                         practicePreferences.vocabFlashcardMeaningInFront.get()
@@ -70,11 +73,15 @@ class VocabPracticeViewModel(
 
         viewModelScope.launch {
             practicePreferences.apply {
+                shuffle.set(configurationState.cardsSelectorState.shuffle.value)
+                newCardsOrder.set(configurationState.cardsSelectorState.newCardsOrder.value)
                 vocabReadingPickerShowMeaning.set(configurationState.readingPicker.showMeaning.value)
                 vocabFlashcardMeaningInFront.set(configurationState.flashcard.translationInFront.value)
             }
 
-            practiceQueue.initialize(items = getQueueDataUseCase(configurationState))
+            practiceQueue.initialize(
+                items = getQueueDataUseCase(configuration, configurationState)
+            )
 
             practiceQueue.state
                 .onEach { applyToScreenState(it) }

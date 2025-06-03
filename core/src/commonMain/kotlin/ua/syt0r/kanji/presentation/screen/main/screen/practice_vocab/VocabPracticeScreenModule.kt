@@ -22,7 +22,11 @@ val vocabPracticeScreenModule = module {
         )
     }
 
-    factory<GetVocabPracticeQueueDataUseCase> { DefaultGetVocabPracticeQueueDataUseCase() }
+    factory<GetVocabPracticeQueueDataUseCase> {
+        DefaultGetVocabPracticeQueueDataUseCase(
+            srsCardRepository = get()
+        )
+    }
 
     factory<GetVocabPracticeSummaryItemUseCase> { DefaultGetVocabPracticeSummaryItemUseCase() }
 

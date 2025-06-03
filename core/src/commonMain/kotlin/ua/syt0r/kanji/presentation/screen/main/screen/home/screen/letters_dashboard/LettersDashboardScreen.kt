@@ -30,7 +30,7 @@ fun LettersDashboardScreen(
         startQuickPractice = { item, practiceType, letters ->
             val destination: MainDestination.LetterPractice = MainDestination.LetterPractice(
                 configuration = LetterPracticeScreenConfiguration(
-                    letters.associateWith { item.deckId },
+                    cards = letters.map { LetterPracticeScreenConfiguration.Card(it, item.deckId) },
                     practiceType = practiceType
                 )
             )

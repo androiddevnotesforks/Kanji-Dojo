@@ -14,6 +14,9 @@ class DefaultUpdateLetterPracticeConfigurationUseCase(
     override suspend fun invoke(
         configuration: LetterPracticeConfiguration
     ) = practicePreferences.run {
+        shuffle.set(configuration.selectorState.shuffle.value)
+        newCardsOrder.set(configuration.selectorState.newCardsOrder.value)
+
         when (configuration) {
             is LetterPracticeConfiguration.Writing -> {
                 noTranslationLayout.set(configuration.noTranslationsLayout.value)

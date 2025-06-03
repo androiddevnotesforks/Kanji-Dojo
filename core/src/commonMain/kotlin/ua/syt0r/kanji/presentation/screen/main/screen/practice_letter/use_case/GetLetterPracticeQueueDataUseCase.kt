@@ -64,27 +64,29 @@ class DefaultGetLetterPracticeQueueDataUseCase(
                     false -> DefaultKanjiStrokeEvaluator()
                 }
 
-                configuration.selectorState.result.map { (character, deckId) ->
-                    val shouldStudy: Boolean = when (configuration.hintMode.value) {
-                        WritingPracticeHintMode.OnlyNew -> {
-                            val isNew = srsCardRepository
-                                .get(LetterPracticeType.Writing.toSrsKey(character)) == null
-                            isNew
-                        }
+                configuration.unfilteredResultCardsList.value
+                    .take(configuration.selectorState.selectedCountIntState.value)
+                    .map { (character, deckId) ->
+                        val shouldStudy: Boolean = when (configuration.hintMode.value) {
+                            WritingPracticeHintMode.OnlyNew -> {
+                                val isNew = srsCardRepository
+                                    .get(LetterPracticeType.Writing.toSrsKey(character)) == null
+                                isNew
+                            }
 
-                        WritingPracticeHintMode.All -> true
-                        WritingPracticeHintMode.None -> false
+                            WritingPracticeHintMode.All -> true
+                            WritingPracticeHintMode.None -> false
+                        }
+                        LetterPracticeQueueItemDescriptor.Writing(
+                            character = character,
+                            deckId = deckId,
+                            romajiReading = configuration.useRomajiForKanaWords.value,
+                            layoutConfiguration = layout,
+                            inputMode = configuration.inputMode.value,
+                            evaluator = evaluator,
+                            shouldStudy = shouldStudy
+                        )
                     }
-                    LetterPracticeQueueItemDescriptor.Writing(
-                        character = character,
-                        deckId = deckId,
-                        romajiReading = configuration.useRomajiForKanaWords.value,
-                        layoutConfiguration = layout,
-                        inputMode = configuration.inputMode.value,
-                        evaluator = evaluator,
-                        shouldStudy = shouldStudy
-                    )
-                }
             }
 
             is LetterPracticeConfiguration.Reading -> {
@@ -93,14 +95,16 @@ class DefaultGetLetterPracticeQueueDataUseCase(
                     kanaAutoPlay = kanaAutoPlay
                 )
 
-                configuration.selectorState.result.map { (character, deckId) ->
-                    LetterPracticeQueueItemDescriptor.Reading(
-                        character = character,
-                        deckId = deckId,
-                        romajiReading = configuration.useRomajiForKanaWords.value,
-                        layoutConfiguration = layout
-                    )
-                }
+                configuration.unfilteredResultCardsList.value
+                    .take(configuration.selectorState.selectedCountIntState.value)
+                    .map { (character, deckId) ->
+                        LetterPracticeQueueItemDescriptor.Reading(
+                            character = character,
+                            deckId = deckId,
+                            romajiReading = configuration.useRomajiForKanaWords.value,
+                            layoutConfiguration = layout
+                        )
+                    }
 
             }
         }

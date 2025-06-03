@@ -39,12 +39,13 @@ import ua.syt0r.kanji.core.user_data.preferences.PreferencesContract
 import ua.syt0r.kanji.presentation.LifecycleState
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.general_dashboard.GeneralDashboardScreenContract.ScreenState
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.general_dashboard.GeneralDashboardStats
-import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.general_dashboard.LetterStudyTargetPracticeOptions
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.general_dashboard.StreakCalendarItem
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.general_dashboard.StudyTarget
+import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.general_dashboard.StudyTargetPracticeOptions
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.general_dashboard.StudyTargetProgress
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.general_dashboard.StudyTargetState
-import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.general_dashboard.VocabStudyTargetPracticeOptions
+import ua.syt0r.kanji.presentation.screen.main.screen.practice_letter.data.LetterPracticeScreenConfiguration
+import ua.syt0r.kanji.presentation.screen.main.screen.practice_vocab.data.VocabPracticeScreenConfiguration
 import kotlin.time.Duration.Companion.days
 
 interface SubscribeOnGeneralDashboardScreenDataUseCase {
@@ -164,10 +165,17 @@ class DefaultSubscribeOnGeneralDashboardScreenDataUseCase(
 
         val leftover = decksData.dailyProgress.leftoversByPracticeTypeMap.getValue(practiceType)
 
+        fun Pair<String, Long>.mapToCard() = LetterPracticeScreenConfiguration.Card(first, second)
+
+        val resultNew = combinedDailyNew.toList().take(leftover.new).map { it.mapToCard() }
+        val dueCards = combinedDailyDue.toList().take(leftover.due).map { it.mapToCard() }
+        val combinedCards = resultNew.plus(dueCards)
+
         return StudyTargetProgress.WithDecks(
-            options = LetterStudyTargetPracticeOptions(
-                newToDeckIdMap = combinedDailyNew.toList().take(leftover.new).toMap(),
-                dueToDeckIdMap = combinedDailyDue.toList().take(leftover.due).toMap()
+            options = StudyTargetPracticeOptions(
+                newCards = resultNew,
+                dueCards = dueCards,
+                combinedCards = combinedCards
             ),
             totalProgress = getProgress(decksData.uniqueCardsCount, combinedNotNew.size)
         )
@@ -197,10 +205,17 @@ class DefaultSubscribeOnGeneralDashboardScreenDataUseCase(
 
         val leftover = decksData.dailyProgress.leftoversByPracticeTypeMap.getValue(practiceType)
 
+        fun Pair<Long, Long>.mapToCard() = VocabPracticeScreenConfiguration.Card(first, second)
+
+        val resultNew = combinedDailyNew.toList().take(leftover.new).map { it.mapToCard() }
+        val dueCards = combinedDailyDue.toList().take(leftover.due).map { it.mapToCard() }
+        val combinedCards = resultNew.plus(dueCards)
+
         return StudyTargetProgress.WithDecks(
-            options = VocabStudyTargetPracticeOptions(
-                newToDeckIdMap = combinedDailyNew.toList().take(leftover.new).toMap(),
-                dueToDeckIdMap = combinedDailyDue.toList().take(leftover.due).toMap()
+            options = StudyTargetPracticeOptions(
+                newCards = resultNew,
+                dueCards = dueCards,
+                combinedCards = combinedCards
             ),
             totalProgress = getProgress(decksData.uniqueCardsCount, combinedNotNew.size)
         )

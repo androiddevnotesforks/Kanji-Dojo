@@ -74,6 +74,12 @@
     <string name="common_dashboard_deck_details">Details</string>
     <string name="common_dashboard_deck_edit">Edit</string>
 
+    <string name="practice_new_cards_config_title">New cards order</string>
+    <string name="practice_new_cards_config_subtitle">Position of new cards in the practice queue</string>
+    <string name="practice_new_cards_config_first">First</string>
+    <string name="practice_new_cards_config_last">Last</string>
+    <string name="practice_new_cards_config_mixed">Mixed</string>
+
     <string name="practice_summary_header_time">Time Spent</string>
     <string name="practice_summary_header_reviews">Cards Reviewed</string>
     <string name="practice_summary_header_accuracy">Accuracy</string>

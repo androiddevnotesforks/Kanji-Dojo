@@ -57,6 +57,9 @@ interface PreferencesContract {
 
     interface PracticePreferences {
 
+        val shuffle: SuspendedProperty<Boolean>
+        val newCardsOrder: SuspendedProperty<PreferencesNewCardsOrder>
+
         val noTranslationLayout: SuspendedProperty<Boolean>
         val leftHandMode: SuspendedProperty<Boolean>
         val altStrokeEvaluator: SuspendedProperty<Boolean>
@@ -76,6 +79,7 @@ interface PreferencesContract {
 
 }
 
+enum class PreferencesNewCardsOrder { First, Last, Mixed }
 enum class PreferencesLetterPracticeType { Writing, Reading }
 enum class PreferencesLetterSortOption { AddOrder, Frequency, Name, ReviewTime }
 enum class PreferencesDeckDetailsLetterLayout { Character, Groups }

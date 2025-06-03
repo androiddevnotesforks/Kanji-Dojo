@@ -18,7 +18,8 @@ val letterPracticeScreenModule = module {
 
     factory<GetLetterPracticeConfigurationUseCase> {
         DefaultGetLetterPracticeConfigurationUseCase(
-            practicePreferences = get()
+            practicePreferences = get(),
+            srsCardRepository = get()
         )
     }
 

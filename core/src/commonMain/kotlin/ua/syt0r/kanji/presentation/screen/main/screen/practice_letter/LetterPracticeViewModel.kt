@@ -111,7 +111,7 @@ class LetterPracticeViewModel(
     private fun reportConfiguration(state: ScreenState.Configuring) {
         analyticsManager.sendEvent("letter_practice_configuration") {
             put("practice_type", configuration.practiceType.dataType.srsPracticeType.value)
-            put("list_size", state.configuration.selectorState.result.size)
+            put("list_size", state.configuration.selectorState.selectedCountIntState.value)
         }
     }
 

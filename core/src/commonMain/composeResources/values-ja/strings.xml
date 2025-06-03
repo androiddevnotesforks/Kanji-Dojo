@@ -38,6 +38,12 @@
     <string name="common_dashboard_deck_details">詳細</string>
     <string name="common_dashboard_deck_edit">編集</string>
 
+    <string name="practice_new_cards_config_title">未習カードの順番</string>
+    <string name="practice_new_cards_config_subtitle">習カードが練習キューに入る位置</string>
+    <string name="practice_new_cards_config_first">最初</string>
+    <string name="practice_new_cards_config_last">最後</string>
+    <string name="practice_new_cards_config_mixed">ランダム</string>
+
     <string name="vocab_card_title">カード</string>
     <string name="vocab_card_kanji">漢字の読み方</string>
     <string name="vocab_card_kana">かなの読み方</string>

@@ -17,21 +17,33 @@ import ua.syt0r.kanji.presentation.common.resources.string.StringResolveScope
 import ua.syt0r.kanji.presentation.screen.main.screen.practice_common.CharacterWriterState
 import ua.syt0r.kanji.presentation.screen.main.screen.practice_common.DisplayableEnum
 import ua.syt0r.kanji.presentation.screen.main.screen.practice_common.PracticeAnswers
-import ua.syt0r.kanji.presentation.screen.main.screen.practice_common.PracticeConfigurationItemsSelectorState
+import ua.syt0r.kanji.presentation.screen.main.screen.practice_common.PracticeConfigurationCard
+import ua.syt0r.kanji.presentation.screen.main.screen.practice_common.PracticeConfigurationCardsSelectorState
+import ua.syt0r.kanji.presentation.screen.main.screen.practice_letter.use_case.LetterPracticeCardConfigurationData
 
 @Serializable
 data class LetterPracticeScreenConfiguration(
-    val characterToDeckIdMap: Map<String, Long>,
-    val practiceType: ScreenLetterPracticeType
-)
+    val practiceType: ScreenLetterPracticeType,
+    val cards: List<Card>,
+) {
+
+    @Serializable
+    data class Card(
+        val letter: String,
+        val deckId: Long
+    ) : PracticeConfigurationCard
+
+}
 
 sealed interface LetterPracticeConfiguration {
 
-    val selectorState: PracticeConfigurationItemsSelectorState<String>
     val practiceType: ScreenLetterPracticeType
+    val selectorState: PracticeConfigurationCardsSelectorState
+    val unfilteredResultCardsList: State<List<LetterPracticeCardConfigurationData>>
 
     data class Writing(
-        override val selectorState: PracticeConfigurationItemsSelectorState<String>,
+        override val selectorState: PracticeConfigurationCardsSelectorState,
+        override val unfilteredResultCardsList: State<List<LetterPracticeCardConfigurationData>>,
         val hintMode: MutableState<WritingPracticeHintMode>,
         val inputMode: MutableState<WritingPracticeInputMode>,
         val useRomajiForKanaWords: MutableState<Boolean>,
@@ -43,7 +55,8 @@ sealed interface LetterPracticeConfiguration {
     }
 
     data class Reading(
-        override val selectorState: PracticeConfigurationItemsSelectorState<String>,
+        override val selectorState: PracticeConfigurationCardsSelectorState,
+        override val unfilteredResultCardsList: State<List<LetterPracticeCardConfigurationData>>,
         val useRomajiForKanaWords: MutableState<Boolean>
     ) : LetterPracticeConfiguration {
         override val practiceType: ScreenLetterPracticeType = ScreenLetterPracticeType.Reading

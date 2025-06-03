@@ -19,9 +19,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -36,14 +33,14 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import ua.syt0r.kanji.presentation.common.MultiplatformDialog
 import ua.syt0r.kanji.presentation.common.resources.string.resolveString
-import ua.syt0r.kanji.presentation.common.theme.Dimens
 import ua.syt0r.kanji.presentation.common.theme.extraColorScheme
-import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.general_dashboard.LetterStudyTargetPracticeOptions
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.general_dashboard.StudyTarget
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.general_dashboard.StudyTargetItem
+import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.general_dashboard.StudyTargetPracticeOptions
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.general_dashboard.StudyTargetProgress
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.general_dashboard.StudyTargetState
 import ua.syt0r.kanji.presentation.screen.main.screen.practice_common.SrsAnswerButton
+import ua.syt0r.kanji.presentation.screen.main.screen.practice_letter.data.LetterPracticeScreenConfiguration
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.time.Duration.Companion.days
@@ -119,9 +116,16 @@ fun TutorialDialog(
                         studyTarget = StudyTarget.LetterWriting,
                         enabled = true,
                         progress = StudyTargetProgress.WithDecks(
-                            options = LetterStudyTargetPracticeOptions(
-                                newToDeckIdMap = (0L..2L).associate { it.toString() to it },
-                                dueToDeckIdMap = (0L..18L).associate { it.toString() to it },
+                            options = StudyTargetPracticeOptions(
+                                newCards = (0L..2L).map {
+                                    LetterPracticeScreenConfiguration.Card(it.toString(), it)
+                                },
+                                dueCards = (0L..18L).map {
+                                    LetterPracticeScreenConfiguration.Card(it.toString(), it)
+                                },
+                                combinedCards = (0L..20L).map {
+                                    LetterPracticeScreenConfiguration.Card(it.toString(), it)
+                                }
                             ),
                             totalProgress = 0.8f
                         )

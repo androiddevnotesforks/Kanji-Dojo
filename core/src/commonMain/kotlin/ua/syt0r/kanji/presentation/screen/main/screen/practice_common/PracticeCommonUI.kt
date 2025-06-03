@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -50,6 +51,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -71,8 +73,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import ua.syt0r.kanji.Res
+import ua.syt0r.kanji.core.user_data.preferences.PreferencesNewCardsOrder
+import ua.syt0r.kanji.practice_new_cards_config_first
+import ua.syt0r.kanji.practice_new_cards_config_last
+import ua.syt0r.kanji.practice_new_cards_config_mixed
+import ua.syt0r.kanji.practice_new_cards_config_subtitle
+import ua.syt0r.kanji.practice_new_cards_config_title
 import ua.syt0r.kanji.practice_summary_button
 import ua.syt0r.kanji.practice_summary_empty
 import ua.syt0r.kanji.practice_summary_header_reviews
@@ -85,12 +94,15 @@ import ua.syt0r.kanji.presentation.common.AppListItemDefaults
 import ua.syt0r.kanji.presentation.common.MultiplatformDialog
 import ua.syt0r.kanji.presentation.common.resources.string.StringResolveScope
 import ua.syt0r.kanji.presentation.common.resources.string.resolveString
+import ua.syt0r.kanji.presentation.common.theme.Dimens
 import ua.syt0r.kanji.presentation.common.theme.extraColorScheme
 import ua.syt0r.kanji.presentation.common.theme.neutralButtonColors
 import ua.syt0r.kanji.presentation.common.theme.snapToBiggerContainerCrossfadeTransitionSpec
 import ua.syt0r.kanji.presentation.common.ui.FilledTextField
 import kotlin.math.roundToInt
 import kotlin.time.Duration
+
+interface PracticeConfigurationCard
 
 sealed interface PracticeToolbarState {
 
@@ -252,31 +264,21 @@ fun PracticeConfigurationContainer(
 
 }
 
-class PracticeConfigurationItemsSelectorState<T>(
-    val itemToDeckIdMap: List<Pair<T, Long>>,
-    shuffle: Boolean
+class PracticeConfigurationCardsSelectorState(
+    val cardsCount: Int,
+    val shuffle: MutableState<Boolean>,
+    val newCardsOrder: MutableState<PreferencesNewCardsOrder>
 ) {
-
-    val range = 1f..itemToDeckIdMap.size.toFloat()
-
-    val selectedCountFloatState = mutableStateOf(itemToDeckIdMap.size.toFloat())
+    val range = 1f..cardsCount.toFloat()
+    val selectedCountFloatState = mutableStateOf(cardsCount.toFloat())
     val selectedCountIntState = derivedStateOf { selectedCountFloatState.value.roundToInt() }
     val selectedCountTextState = mutableStateOf(selectedCountIntState.value.toString())
-
-    val shuffleState = mutableStateOf(shuffle)
-    val sortedList = mutableStateOf(
-        value = if (shuffle) itemToDeckIdMap.shuffled() else itemToDeckIdMap
-    )
-
-    val result: List<Pair<T, Long>>
-        get() = sortedList.value.take(selectedCountIntState.value)
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun <T> PracticeConfigurationItemsSelector(
-    state: PracticeConfigurationItemsSelectorState<T>
+fun PracticeConfigurationItemsSelector(
+    state: PracticeConfigurationCardsSelectorState
 ) {
 
     Row(
@@ -346,22 +348,41 @@ fun <T> PracticeConfigurationItemsSelector(
             }
         )
 
-        Text(text = state.itemToDeckIdMap.size.toString())
+        Text(text = state.cardsCount.toString())
 
     }
 
     PracticeConfigurationOption(
         title = resolveString { commonPractice.shuffleConfigurationTitle },
         subtitle = resolveString { commonPractice.shuffleConfigurationMessage },
-        checked = state.shuffleState.value,
-        onChange = { shuffleEnabled ->
-            state.shuffleState.value = shuffleEnabled
-            state.sortedList.value = when {
-                shuffleEnabled -> state.itemToDeckIdMap.shuffled()
-                else -> state.itemToDeckIdMap
-            }
-        }
+        checked = state.shuffle.value,
+        onChange = { state.shuffle.value = it }
     )
+
+    PracticeConfigurationEnumSelector(
+        title = stringResource(Res.string.practice_new_cards_config_title),
+        subtitle = stringResource(Res.string.practice_new_cards_config_subtitle),
+        values = ScreenNewCardsOrder.entries,
+        selected = ScreenNewCardsOrder.from(state.newCardsOrder.value),
+        onSelected = { state.newCardsOrder.value = it.repoType }
+    )
+
+}
+
+enum class ScreenNewCardsOrder(
+    stringResource: StringResource,
+    val repoType: PreferencesNewCardsOrder
+) : DisplayableEnum {
+
+    First(Res.string.practice_new_cards_config_first, PreferencesNewCardsOrder.First),
+    Last(Res.string.practice_new_cards_config_last, PreferencesNewCardsOrder.Last),
+    Mixed(Res.string.practice_new_cards_config_mixed, PreferencesNewCardsOrder.Mixed);
+
+    override val titleResolver: StringResolveScope<String> = { stringResource(stringResource) }
+
+    companion object {
+        fun from(repoType: PreferencesNewCardsOrder) = entries.first { it.repoType == repoType }
+    }
 
 }
 
@@ -384,7 +405,6 @@ fun ColumnScope.PracticeConfigurationCharactersPreview(
     ) {
         Text(
             text = resolveString { commonPractice.configurationCharactersPreview },
-            style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.weight(1f)
         )
         IconButton(onClick = { previewExpanded = !previewExpanded }) {
@@ -443,11 +463,12 @@ private fun PracticeConfigurationItem(
     title: String,
     subtitle: String,
     onClick: (() -> Unit)? = null,
+    modifier: Modifier = Modifier,
     content: @Composable RowScope.() -> Unit
 ) {
 
     Row(
-        modifier = Modifier
+        modifier = modifier
             .clip(MaterialTheme.shapes.medium)
             .run { if (onClick != null) clickable(onClick = onClick) else this }
             .fillMaxWidth()
@@ -473,7 +494,8 @@ private fun PracticeConfigurationItem(
 @Composable
 private fun PracticeConfigurationDropDownButton(
     text: String,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
 
     TextButton(
@@ -481,7 +503,7 @@ private fun PracticeConfigurationDropDownButton(
         colors = ButtonDefaults.textButtonColors(
             contentColor = MaterialTheme.colorScheme.onSurfaceVariant
         ),
-        modifier = Modifier.width(IntrinsicSize.Max)
+        modifier = modifier.width(IntrinsicSize.Max)
     ) {
         Text(
             text = text,
@@ -509,12 +531,14 @@ fun <T> PracticeConfigurationEnumSelector(
 
     PracticeConfigurationItem(
         title = title,
-        subtitle = subtitle,
+        subtitle = subtitle
     ) {
 
         var expanded by remember { mutableStateOf(false) }
 
-        Box {
+        Box(
+            modifier = Modifier.offset(Dimens.ContentPaddingSmall)
+        ) {
 
             PracticeConfigurationDropDownButton(
                 text = resolveString(selected.titleResolver),

@@ -12,6 +12,18 @@ class PracticePreferences(
 ) : PreferencesContract.PracticePreferences,
     SuspendedPropertyCreatorScope by suspendedPropertyCreatorScope {
 
+    override val shuffle: SuspendedProperty<Boolean> = createProperty(
+        type = BooleanSuspendedPropertyType,
+        key = "shuffle",
+        initialValue = { true }
+    )
+
+    override val newCardsOrder: SuspendedProperty<PreferencesNewCardsOrder> = createProperty(
+        type = enumSuspendedPropertyType<PreferencesNewCardsOrder>(),
+        key = "new_cards_order",
+        initialValue = { PreferencesNewCardsOrder.First }
+    )
+
     override val noTranslationLayout: SuspendedProperty<Boolean> = createProperty(
         type = BooleanSuspendedPropertyType,
         key = "no_trans_layout_enabled",

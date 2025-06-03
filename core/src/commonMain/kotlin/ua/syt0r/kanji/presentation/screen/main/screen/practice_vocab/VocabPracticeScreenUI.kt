@@ -161,7 +161,7 @@ private fun ScreenConfiguration(
     ) {
 
         PracticeConfigurationItemsSelector(
-            state = screenState.itemsSelectorState
+            state = screenState.cardsSelectorState
         )
 
         when (screenState.practiceType) {

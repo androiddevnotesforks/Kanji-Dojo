@@ -77,7 +77,7 @@ class DeckDetailsViewModel(
         val characters = group.items.map { it.character }
         return MainDestination.LetterPractice(
             configuration = LetterPracticeScreenConfiguration(
-                characterToDeckIdMap = characters.associateWith { deckId },
+                cards = characters.map { LetterPracticeScreenConfiguration.Card(it, deckId) },
                 practiceType = when (configuration.practiceType) {
                     ScreenLetterPracticeType.Writing -> ScreenLetterPracticeType.Writing
                     ScreenLetterPracticeType.Reading -> ScreenLetterPracticeType.Reading
@@ -113,7 +113,9 @@ class DeckDetailsViewModel(
 
                 MainDestination.LetterPractice(
                     configuration = LetterPracticeScreenConfiguration(
-                        characterToDeckIdMap = characters.associateWith { deckId },
+                        cards = characters.map {
+                            LetterPracticeScreenConfiguration.Card(it, deckId)
+                        },
                         practiceType = when (configuration.practiceType) {
                             ScreenLetterPracticeType.Writing -> ScreenLetterPracticeType.Writing
                             ScreenLetterPracticeType.Reading -> ScreenLetterPracticeType.Reading
@@ -125,10 +127,16 @@ class DeckDetailsViewModel(
             is DeckDetailsConfiguration.VocabDeckConfiguration -> {
                 currentVisibleData as DeckDetailsVisibleData.Vocab
                 val vocabPracticeScreenConfiguration = VocabPracticeScreenConfiguration(
-                    wordIdToDeckIdMap = currentVisibleData.items.asSequence()
+                    cards = currentVisibleData.items.asSequence()
                         .filter { it.selected.value }
-                        .map { it.data.card.cardId }
-                        .associateWith { 0 },
+                        .map { it.data.card }
+                        .map {
+                            VocabPracticeScreenConfiguration.Card(
+                                cardId = it.cardId,
+                                deckId = it.deckId
+                            )
+                        }
+                        .toList(),
                     practiceType = loadedState.configuration.value
                         .let { it as DeckDetailsConfiguration.VocabDeckConfiguration }
                         .practiceType
