@@ -79,9 +79,7 @@ sealed interface TextAnalysisNode {
         val sequence: Long?,
         val text: String,
         val reading: VocabReading,
-        val dictionaryReading: VocabReading?,
-        val glossary: List<Glossary>,
-        val combinedPartOfSpeechList: List<PartOfSpeech>,
+        val cards: List<CardData>,
         val highlightPartOfSpeech: PartOfSpeech?
     ) : TextAnalysisNode
 
@@ -97,20 +95,45 @@ sealed interface TextAnalysisNode {
         val childNodeList: List<TextAnalysisNode>
     ) : TextAnalysisNode
 
-    data class Glossary(
-        val definition: String,
-        val partOfSpeech: Set<PartOfSpeech> = emptySet()
+    data class CardData(
+        val sequence: Long?,
+        val reading: VocabReading,
+        val notes: List<String>,
+        val glossary: List<String>,
+        val partOfSpeech: List<PartOfSpeech>
     )
 
     enum class PartOfSpeech(regexPattern: String) {
-        Noun("n"),
-        Verb("v.*"),
-        Adj("adj.*"),
-        Prt("prt"),
-        Suf("suf"),
-        Exp("exp");
+        Noun("^(n|n-adv|n-pr|n-pref|n-suf|n-t|adj-no)\$"),
+        Verb("^v.*"),
+        Adjective("^adj.*"),
+        Particle("^prt\$"),
+        Suffix("^suf\$"),
+        Prefix("^pref\$"),
+        Expression("^exp\$"),
+        Counter("^ctr\$"),
+        Interjection("^int\$"),
+        Conjunction("^conj\$"),
+        Pronoun("^pn\$"),
+        Number("^num\$"),
+        Adverb("^adv.*"),
+        Auxiliary("^aux.*"),
+        Copula("^cop\$"),
+        Unclassified("^unc\$");
 
         val regex = Regex(regexPattern)
+
+        companion object {
+
+            fun detect(tag: String): PartOfSpeech? {
+                return entries.firstOrNull { it.regex.matches(tag) }
+            }
+
+            fun detectAll(tags: List<String>): Set<PartOfSpeech> {
+                return tags.mapNotNull { detect(it) }.toSet()
+            }
+
+        }
     }
 
 }

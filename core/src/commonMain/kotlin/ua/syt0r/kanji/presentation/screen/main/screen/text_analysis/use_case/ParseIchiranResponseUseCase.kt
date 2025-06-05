@@ -13,6 +13,7 @@ import ua.syt0r.kanji.core.app_data.data.VocabReading
 import ua.syt0r.kanji.core.app_data.data.buildFuriganaString
 import ua.syt0r.kanji.core.logger.Logger
 import ua.syt0r.kanji.presentation.screen.main.screen.text_analysis.TextAnalysisNode
+import ua.syt0r.kanji.presentation.screen.main.screen.text_analysis.TextAnalysisNode.PartOfSpeech
 
 interface ParseIchiranResponseUseCase {
     operator fun invoke(jsonArray: JsonArray): List<TextAnalysisNode>
@@ -89,87 +90,126 @@ class DefaultParseIchiranResponseUseCase : ParseIchiranResponseUseCase {
     }
 
     private fun JsonObject.asWordNode(): TextAnalysisNode = runCatching {
-        val glossary = getGlossaries()
 
+        val sequence = get("seq")?.jsonPrimitive?.long
         val text = get("text")!!.jsonPrimitive.content.cleaned()
         val kana = get("kana")!!.jsonPrimitive.content.cleaned()
         val reading = get("reading")!!.jsonPrimitive.content.cleaned()
 
-        if (glossary.isEmpty()) {
-            // Kana only words
-            return@runCatching TextAnalysisNode.Text(text)
-        }
-
         runCatching {
-            val conjugations = get("conj")?.jsonArray
-            val conjugationsVia = conjugations
-                ?.flatMap { it.jsonObject["via"]?.jsonArray ?: emptyList() }
-                ?.takeIf { it.isNotEmpty() }
 
-            val conjugationReading = (conjugationsVia ?: conjugations)
-                ?.firstOrNull()
-                ?.jsonObject
-                ?.get("reading")
-                ?.jsonPrimitive
-                ?.content
+            val cards = mutableListOf<TextAnalysisNode.CardData>()
 
-            val dictionaryReading: VocabReading? = conjugationReading?.let {
-                val formattedKanaReadingStart = it.indexOf("【")
-                when {
-                    formattedKanaReadingStart == -1 -> VocabReading(
-                        kanjiReading = null,
-                        kanaReading = it,
-                        furigana = null
-                    )
-
-                    else -> {
-                        val kanji = it.substring(
-                            startIndex = 0,
-                            endIndex = formattedKanaReadingStart
-                        ).trim()
-
-                        val kana = it.substring(
-                            startIndex = formattedKanaReadingStart.plus(1),
-                            endIndex = it.indexOf("】")
-                        )
-
-                        VocabReading(
-                            kanjiReading = kanji,
-                            kanaReading = kana,
-                            furigana = getFurigana(kanji, kana)
-                        )
-                    }
-                }
+            get("gloss")?.jsonArray?.forEach { glossRaw ->
+                val gloss = glossRaw.jsonObject.asGlossary()
+                val card = TextAnalysisNode.CardData(
+                    sequence = sequence,
+                    reading = getVocabReading(reading),
+                    notes = emptyList(),
+                    glossary = listOf(gloss.definition),
+                    partOfSpeech = gloss.partOfSpeech.toList()
+                )
+                cards.add(card)
             }
 
-            val combinedPartOfSpeechList = glossary
-                .asSequence()
-                .flatMap { it.partOfSpeech }
-                .distinct()
-                .sortedBy { it.ordinal }
-                .toList()
+            get("conj")?.jsonArray?.forEach { conjRaw ->
+                val conj = conjRaw.jsonObject.asConj()
+                val reading = conj.reading ?: conj.via.firstNotNullOf { it.reading }
+                val props = conj.props.plus(conj.via.flatMap { it.props })
+                val glossaries = conj.glossaries.plus(conj.via.flatMap { it.glossaries })
+                val card = TextAnalysisNode.CardData(
+                    sequence = sequence,
+                    reading = getVocabReading(reading),
+                    notes = props.map { it.type },
+                    glossary = glossaries.map { it.definition },
+                    partOfSpeech = props.mapNotNull { it.partOfSpeech }
+                        .plus(glossaries.flatMap { it.partOfSpeech })
+                        .distinct()
+                )
+                cards.add(card)
+            }
+
+            get("suffix")?.jsonPrimitive?.content?.let { suffix ->
+                val card = TextAnalysisNode.CardData(
+                    sequence = sequence,
+                    reading = getVocabReading(reading),
+                    notes = emptyList(),
+                    glossary = listOf(suffix),
+                    partOfSpeech = emptyList()
+                )
+                cards.add(card)
+            }
+
+            get("counter")?.jsonObject?.let { counterRaw ->
+                val value = counterRaw.getValue("value").jsonPrimitive.content.lowercase()
+                val gloss = "Counter, $value"
+                val card = TextAnalysisNode.CardData(
+                    sequence = sequence,
+                    reading = getVocabReading(reading),
+                    notes = emptyList(),
+                    glossary = listOf(gloss),
+                    partOfSpeech = emptyList()
+                )
+                cards.add(card)
+            }
+
+            if (cards.isEmpty()) {
+                // Kana only words
+                return@runCatching TextAnalysisNode.Text(text)
+            }
 
             TextAnalysisNode.Word(
-                sequence = get("seq")?.jsonPrimitive?.long,
-                text = get("text")!!.jsonPrimitive.content.cleaned(),
+                sequence = sequence,
+                text = getValue("text").jsonPrimitive.content.cleaned(),
                 reading = VocabReading(
                     kanjiReading = text.takeIf { it != kana },
                     kanaReading = kana,
                     furigana = getFurigana(text, kana),
                 ),
-                dictionaryReading = dictionaryReading,
-                combinedPartOfSpeechList = combinedPartOfSpeechList,
-                highlightPartOfSpeech = combinedPartOfSpeechList.firstOrNull(),
-                glossary = glossary
+                cards = cards,
+                highlightPartOfSpeech = cards
+                    .firstNotNullOfOrNull { it.partOfSpeech.takeIf { it.isNotEmpty() } }
+                    ?.minByOrNull { it.ordinal }
             )
         }.getOrElse {
+            it.printStackTrace()
             Logger.d("parsingError[$it]")
             TextAnalysisNode.Error(text)
         }
 
     }.getOrElse {
+        it.printStackTrace()
         Logger.d("parsingError[$it]")
         TextAnalysisNode.Error(null)
+    }
+
+    private fun getVocabReading(text: String): VocabReading {
+        val formattedKanaReadingStart = text.indexOf("【")
+        return when {
+            formattedKanaReadingStart == -1 -> VocabReading(
+                kanjiReading = null,
+                kanaReading = text,
+                furigana = null
+            )
+
+            else -> {
+                val kanji = text.substring(
+                    startIndex = 0,
+                    endIndex = formattedKanaReadingStart
+                ).trim()
+
+                val kana = text.substring(
+                    startIndex = formattedKanaReadingStart.plus(1),
+                    endIndex = text.indexOf("】")
+                )
+
+                VocabReading(
+                    kanjiReading = kanji,
+                    kanaReading = kana,
+                    furigana = getFurigana(kanji, kana)
+                )
+            }
+        }
     }
 
     private fun getFurigana(text: String, kana: String): FuriganaString {
@@ -196,53 +236,55 @@ class DefaultParseIchiranResponseUseCase : ParseIchiranResponseUseCase {
         }
     }
 
-    private fun JsonObject.getGlossaries(): List<TextAnalysisNode.Glossary> {
-        val conjugations = get("conj")?.jsonArray?.takeIf { it.isNotEmpty() }
-        if (conjugations != null) {
-            return conjugations
-                .mapNotNull { it.jsonObject["via"]?.jsonArray }
-                .flatten()
-                .plus(conjugations)
-                .mapNotNull { it.jsonObject["gloss"]?.jsonArray }
-                .flatten()
-                .map { it.jsonObject.asGlossary() }
-        }
-
-        val glosses = get("gloss")?.jsonArray?.takeIf { it.isNotEmpty() }
-        if (glosses != null) {
-            return glosses.map { it.jsonObject.asGlossary() }
-        }
-
-        val suffix = get("suffix")?.jsonPrimitive?.content
-        if (suffix != null) {
-            return listOf(TextAnalysisNode.Glossary(suffix))
-        }
-
-        val counter = get("counter")?.jsonObject
-        if (counter != null) {
-            val value = "Counter, " + counter.getValue("value").jsonPrimitive.content.lowercase()
-            return listOf(TextAnalysisNode.Glossary(value))
-        }
-
-        return emptyList()
-    }
-
-    private fun JsonObject.asGlossary(): TextAnalysisNode.Glossary {
-        return TextAnalysisNode.Glossary(
-            definition = get("gloss")!!.jsonPrimitive.content,
-            partOfSpeech = get("pos")!!.jsonPrimitive.content
+    private fun JsonObject.asGlossary(): Glossary {
+        return Glossary(
+            definition = getValue("gloss").jsonPrimitive.content,
+            partOfSpeech = getValue("pos").jsonPrimitive.content
                 .removeSurrounding("[", "]")
                 .split(",")
-                .mapNotNull { value ->
-                    TextAnalysisNode.PartOfSpeech
-                        .entries
-                        .find { it.regex.matches(value) }
-                }
+                .mapNotNull { value -> PartOfSpeech.entries.find { it.regex.matches(value) } }
                 .toSet()
+        )
+    }
+
+    private fun JsonObject.asProp(): ConjugationProp {
+        val posRaw = getValue("pos").jsonPrimitive.content
+        val pos = PartOfSpeech.entries.firstOrNull { it.regex.matches(posRaw) }
+        if (pos == null) Logger.d("No matching pos found for pos[$posRaw]")
+        val type = getValue("type").jsonPrimitive.content
+        return ConjugationProp(
+            partOfSpeech = pos,
+            type = type
+        )
+    }
+
+    private fun JsonObject.asConj(): Conjugation {
+        return Conjugation(
+            glossaries = get("gloss")?.jsonArray?.map { it.jsonObject.asGlossary() } ?: emptyList(),
+            props = get("prop")?.jsonArray?.map { it.jsonObject.asProp() } ?: emptyList(),
+            reading = get("reading")?.jsonPrimitive?.content,
+            via = get("via")?.jsonArray?.map { it.jsonObject.asConj() } ?: emptyList()
         )
     }
 
     private val cleanupRegex = Regex("[\\s\\u200B-\\u200D\\uFEFF\\u2060\\u00AD\\p{Cf}]")
     private fun String.cleaned(): String = trim().replace(cleanupRegex, "")
+
+    private data class Glossary(
+        val definition: String,
+        val partOfSpeech: Set<PartOfSpeech> = emptySet()
+    )
+
+    private data class Conjugation(
+        val glossaries: List<Glossary>,
+        val props: List<ConjugationProp>,
+        val reading: String?,
+        val via: List<Conjugation>
+    )
+
+    private data class ConjugationProp(
+        val partOfSpeech: PartOfSpeech?,
+        val type: String
+    )
 
 }
