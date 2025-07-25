@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemColors
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -34,7 +36,8 @@ fun AppListItem(
     leadingContent: @Composable (() -> Unit)? = null,
     trailingContent: @Composable (() -> Unit)? = null,
     onClick: (() -> Unit)? = null,
-    paddingValues: PaddingValues = AppListItemDefaults.ExtraPaddings
+    paddingValues: PaddingValues = AppListItemDefaults.ExtraPaddings,
+    colors: ListItemColors = ListItemDefaults.colors()
 ) {
 
     ListItem(
@@ -47,7 +50,8 @@ fun AppListItem(
         overlineContent = overlineContent,
         supportingContent = supportingContent,
         leadingContent = leadingContent,
-        trailingContent = trailingContent
+        trailingContent = trailingContent,
+        colors = colors
     )
 
 }

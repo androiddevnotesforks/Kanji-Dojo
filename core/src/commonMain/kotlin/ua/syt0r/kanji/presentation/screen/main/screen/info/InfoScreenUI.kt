@@ -55,6 +55,7 @@ import ua.syt0r.kanji.presentation.common.copyCentered
 import ua.syt0r.kanji.presentation.common.rememberExtraListSpacerState
 import ua.syt0r.kanji.presentation.common.resources.string.resolveString
 import ua.syt0r.kanji.presentation.common.trackOverlay
+import ua.syt0r.kanji.presentation.common.ui.ClickableFuriganaText
 import ua.syt0r.kanji.presentation.screen.main.screen.info.InfoScreenContract.ScreenState
 import ua.syt0r.kanji.presentation.screen.main.screen.info.ui.LetterInfoUI
 import ua.syt0r.kanji.presentation.screen.main.screen.info.ui.VocabInfoUI
@@ -291,7 +292,8 @@ fun LazyListScope.infoScreenExpandableVocabSection(
 
 fun LazyListScope.infoScreenExpandableSentenceSection(
     expanded: MutableState<Boolean>,
-    paginateable: PaginateableState<Sentence>
+    paginateable: PaginateableState<Sentence>,
+    onFuriganaClick: (String) -> Unit
 ) {
 
     infoScreenExpandableSection(
@@ -304,7 +306,12 @@ fun LazyListScope.infoScreenExpandableSentenceSection(
                 item = { index, sentence ->
                     AppListItem(
                         leadingContent = { InfoScreenPaddedListIndex(index) },
-                        headlineContent = { SelectionContainer { Text(sentence.value) } },
+                        headlineContent = {
+                            ClickableFuriganaText(
+                                furiganaString = sentence.furigana,
+                                onClick = onFuriganaClick
+                            )
+                        },
                         supportingContent = { SelectionContainer { Text(sentence.translation) } }
                     )
                 }

@@ -239,7 +239,7 @@ class SqlDelightAppDataRepository(
     }
 
     override suspend fun getSentencesWithTextCount(text: String): Int = vocabQuery {
-        getSenseExamplesWithTextCount(text).executeAsOne().toInt()
+        getSentencesWithTextCount(text).executeAsOne().toInt()
     }
 
     override suspend fun getSentencesWithText(
@@ -247,9 +247,15 @@ class SqlDelightAppDataRepository(
         offset: Int,
         limit: Int
     ): List<Sentence> = vocabQuery {
-        getSenseExamplesWithText(text = text, offset = offset.toLong(), limit = limit.toLong())
+        getSentencesWithText(text = text, offset = offset.toLong(), limit = limit.toLong())
             .executeAsList()
-            .map { Sentence(it.sentence, it.translation) }
+            .map {
+                Sentence(
+                    value = it.sentence,
+                    translation = it.translation,
+                    furigana = it.furigana.parseAsFurigana()
+                )
+            }
     }
 
     override suspend fun getWordSenses(idList: Set<Long>): List<VocabSenseGroup> = vocabQuery {

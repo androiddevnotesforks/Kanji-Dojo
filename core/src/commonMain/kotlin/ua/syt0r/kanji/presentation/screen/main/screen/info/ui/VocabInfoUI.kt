@@ -102,7 +102,8 @@ fun VocabInfoUI(
 
                 infoScreenExpandableSentenceSection(
                     expanded = sentencesExpanded,
-                    paginateable = sentences
+                    paginateable = sentences,
+                    onFuriganaClick = onLetterClick
                 )
 
                 listSpacerState.ExtraSpacer(this)
@@ -148,7 +149,8 @@ fun VocabInfoUI(
 
                     infoScreenExpandableSentenceSection(
                         expanded = sentencesExpanded,
-                        paginateable = sentences
+                        paginateable = sentences,
+                        onFuriganaClick = onLetterClick
                     )
 
                     listSpacerState.ExtraSpacer(this)

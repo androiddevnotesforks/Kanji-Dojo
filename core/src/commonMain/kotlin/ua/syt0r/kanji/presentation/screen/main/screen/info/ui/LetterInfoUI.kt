@@ -123,7 +123,8 @@ fun LetterInfoUI(
 
             infoScreenExpandableSentenceSection(
                 expanded = sentencesExpanded,
-                paginateable = sentences
+                paginateable = sentences,
+                onFuriganaClick = onFuriganaClick
             )
 
             listSpacerState.ExtraSpacer(this)
@@ -163,7 +164,8 @@ fun LetterInfoUI(
 
                 infoScreenExpandableSentenceSection(
                     expanded = sentencesExpanded,
-                    paginateable = sentences
+                    paginateable = sentences,
+                    onFuriganaClick = onFuriganaClick
                 )
 
                 listSpacerState.ExtraSpacer(this)

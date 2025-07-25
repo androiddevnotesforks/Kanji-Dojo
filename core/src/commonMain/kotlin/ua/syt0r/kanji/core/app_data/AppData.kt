@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 import ua.syt0r.kanji.BuildConfig
 import ua.syt0r.kanji.core.app_data.data.CharacterRadical
 import ua.syt0r.kanji.core.app_data.data.DetailedJapaneseWord
+import ua.syt0r.kanji.core.app_data.data.FuriganaString
 import ua.syt0r.kanji.core.app_data.data.JapaneseWord
 import ua.syt0r.kanji.core.app_data.data.KanjiData
 import ua.syt0r.kanji.core.app_data.data.RadicalData
@@ -105,7 +106,8 @@ class VocabSenseGroup(
 
 data class Sentence(
     val value: String,
-    val translation: String
+    val translation: String,
+    val furigana: FuriganaString
 )
 
 @Serializable
