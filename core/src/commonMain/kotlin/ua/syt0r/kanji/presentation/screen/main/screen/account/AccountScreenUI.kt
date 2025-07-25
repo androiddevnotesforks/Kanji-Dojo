@@ -15,30 +15,46 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Login
-import androidx.compose.material.icons.filled.CreditCard
-import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.outlined.CreditCard
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.outlined.OpenInBrowser
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import kotlinx.datetime.format
+import org.jetbrains.compose.resources.stringResource
+import ua.syt0r.kanji.Res
+import ua.syt0r.kanji.account_delete
+import ua.syt0r.kanji.account_visit_website
 import ua.syt0r.kanji.core.ApiRequestIssue
 import ua.syt0r.kanji.core.SubscriptionInfo
 import ua.syt0r.kanji.core.format
+import ua.syt0r.kanji.presentation.common.AppDropdownMenu
+import ua.syt0r.kanji.presentation.common.AppDropdownMenuItem
 import ua.syt0r.kanji.presentation.common.AppListItem
 import ua.syt0r.kanji.presentation.common.CommonDateTimeFormat
 import ua.syt0r.kanji.presentation.common.InvertedButton
@@ -134,9 +150,40 @@ fun AccountScreenSignedIn(
             )
         }
 
+        val uriHandler = LocalUriHandler.current
+
         AppListItem(
-            leadingContent = { Icon(Icons.Default.Email, null) },
+            leadingContent = { Icon(Icons.Outlined.Email, null) },
             headlineContent = { Text(resolveString { account.emailTitle }) },
+            trailingContent = {
+                var showDropDown by remember { mutableStateOf(false) }
+                AppDropdownMenu(showDropDown, { showDropDown = false }) {
+                    AppDropdownMenuItem(
+                        onClick = { uriHandler.openUri(AccountScreenContract.ACCOUNT_WEB_PAGE_URL) },
+                        {
+                            Icon(Icons.Outlined.OpenInBrowser, null)
+                            Text(stringResource(Res.string.account_visit_website))
+                        }
+                    )
+                    AppDropdownMenuItem(
+                        onClick = { uriHandler.openUri(AccountScreenContract.ACCOUNT_DELETE_URL) },
+                        {
+                            CompositionLocalProvider(
+                                LocalContentColor provides MaterialTheme.colorScheme.error
+                            ) {
+                                Icon(Icons.Outlined.Delete, null)
+                                Text(stringResource(Res.string.account_delete))
+                            }
+                        }
+                    )
+                }
+
+                IconButton(
+                    onClick = { showDropDown = true }
+                ) {
+                    Icon(Icons.Outlined.MoreVert, null)
+                }
+            },
             supportingContent = { Text(email) }
         )
 
@@ -198,7 +245,7 @@ fun SubscriptionInfoListItem(
     }
 
     AppListItem(
-        leadingContent = { Icon(Icons.Default.CreditCard, null) },
+        leadingContent = { Icon(Icons.Outlined.CreditCard, null) },
         headlineContent = { Text(resolveString { account.subscriptionTitle }) },
         supportingContent = {
             Column {

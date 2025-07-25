@@ -130,6 +130,9 @@
         <item quantity="other">%1$d Days</item>
     </plurals>
 
+    <string name="account_visit_website">View on Web</string>
+    <string name="account_delete">Delete Account</string>
+
     <string name="account_subscription_duration_unknown">Unknown duration format: %1$s</string>
 
     <string name="snackbar_sub_expired_message">Your subscription has expired</string>
