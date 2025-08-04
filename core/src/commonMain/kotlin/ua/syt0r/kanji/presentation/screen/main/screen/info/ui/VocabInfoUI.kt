@@ -236,12 +236,7 @@ private fun VocabReadingSection(word: JapaneseWord) {
             TextButton(
                 onClick = {
                     val searchTerm = reading.kanjiReading ?: reading.kanaReading
-                    val url = buildUrl {
-                        protocol = URLProtocol.HTTPS
-                        host = "jisho.org"
-                        appendPathSegments("search", searchTerm)
-                    }
-                    uriHandler.openUri(url.toString())
+                    uriHandler.openUri(InfoScreenContract.getJishoSearchUrl(searchTerm))
                 },
                 colors = ButtonDefaults.neutralTextButtonColors()
             ) {

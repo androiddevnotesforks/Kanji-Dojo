@@ -1,13 +1,27 @@
 package ua.syt0r.kanji.presentation.screen.main.screen.info
 
 import androidx.compose.runtime.State
+import io.ktor.http.URLProtocol
+import io.ktor.http.appendPathSegments
+import io.ktor.http.buildUrl
 import kotlinx.coroutines.CoroutineScope
 
 interface InfoScreenContract {
 
     companion object {
+
         const val ListPageItemsCount: Int = 50
         const val ListPrefetchDistance: Int = 50
+
+        fun getJishoSearchUrl(searchTerm: String): String {
+            val url = buildUrl {
+                protocol = URLProtocol.HTTPS
+                host = "jisho.org"
+                appendPathSegments("search", searchTerm)
+            }
+            return url.toString()
+        }
+
     }
 
     interface ViewModel {
@@ -18,7 +32,9 @@ interface InfoScreenContract {
 
         data object Loading : ScreenState
 
-        data object NoData : ScreenState
+        data class NoData(
+            val data: InfoScreenData
+        ) : ScreenState
 
         sealed interface Loaded : ScreenState {
 

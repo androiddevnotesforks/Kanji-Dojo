@@ -26,10 +26,10 @@ class InfoLoadVocabStateUseCase(
                 .firstOrNull()
 
             else -> appDataRepository.getWord(data.id, data.kanjiReading, data.kanaReading)
-        } ?: return ScreenState.NoData
+        } ?: return ScreenState.NoData(data)
 
         val detailedWord = appDataRepository.getDetailedWord(targetWord.id)
-            ?: return ScreenState.NoData
+            ?: return ScreenState.NoData(data)
 
         val reading = targetWord.reading
         val matchingSenses = detailedWord.senseList

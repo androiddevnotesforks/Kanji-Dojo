@@ -679,7 +679,6 @@ object EnglishInfoScreenStrings : InfoScreenStrings {
     override val frequencyMessage: (frequency: Int) -> String = {
         "$it of 2500 most used kanji in newspapers"
     }
-    override val noDataMessage: String = "No data"
 
 }
 

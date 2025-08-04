@@ -157,4 +157,9 @@
         <item>A diligent learner contributed %1$s¥! May your reviews always be correct.</item>
     </string-array>
 
+    <string name="info_no_data_letter">No data found for letter %1$s</string>
+    <string name="info_no_data_vocab">No data found for vocab %1$s</string>
+    <string name="info_no_data_copy">Copy</string>
+    <string name="info_no_data_jisho">Search on Jisho</string>
+
 </resources>

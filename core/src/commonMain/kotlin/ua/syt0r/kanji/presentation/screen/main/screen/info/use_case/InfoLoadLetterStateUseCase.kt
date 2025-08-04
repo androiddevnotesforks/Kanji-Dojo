@@ -17,6 +17,7 @@ import ua.syt0r.kanji.presentation.common.ui.kanji.KanjiRadicalsSectionData
 import ua.syt0r.kanji.presentation.common.ui.kanji.parseKanjiStrokes
 import ua.syt0r.kanji.presentation.screen.main.screen.info.InfoScreenContract
 import ua.syt0r.kanji.presentation.screen.main.screen.info.InfoScreenContract.ScreenState
+import ua.syt0r.kanji.presentation.screen.main.screen.info.InfoScreenData
 import ua.syt0r.kanji.presentation.screen.main.screen.info.LetterInfoData
 
 class InfoLoadLetterStateUseCase(
@@ -44,7 +45,7 @@ class InfoLoadLetterStateUseCase(
             analyticsManager.sendEvent("kanji_info_loading_error") {
                 put("message", it.message ?: "No message")
             }
-            ScreenState.NoData
+            ScreenState.NoData(InfoScreenData.Letter(character))
         }
     }
 

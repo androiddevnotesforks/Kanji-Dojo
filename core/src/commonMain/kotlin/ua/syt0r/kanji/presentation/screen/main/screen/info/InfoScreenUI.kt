@@ -9,11 +9,14 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -22,6 +25,8 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -41,10 +46,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
+import io.ktor.http.URLProtocol
+import io.ktor.http.appendPathSegments
+import io.ktor.http.buildUrl
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
+import ua.syt0r.kanji.Res
 import ua.syt0r.kanji.core.app_data.Sentence
 import ua.syt0r.kanji.core.app_data.data.JapaneseWord
+import ua.syt0r.kanji.info_no_data_copy
+import ua.syt0r.kanji.info_no_data_jisho
+import ua.syt0r.kanji.info_no_data_letter
+import ua.syt0r.kanji.info_no_data_vocab
 import ua.syt0r.kanji.presentation.common.AppListItem
 import ua.syt0r.kanji.presentation.common.ExpandButton
 import ua.syt0r.kanji.presentation.common.ExtraListSpacerState
@@ -53,7 +70,8 @@ import ua.syt0r.kanji.presentation.common.JapaneseWordUI
 import ua.syt0r.kanji.presentation.common.PaginateableState
 import ua.syt0r.kanji.presentation.common.copyCentered
 import ua.syt0r.kanji.presentation.common.rememberExtraListSpacerState
-import ua.syt0r.kanji.presentation.common.resources.string.resolveString
+import ua.syt0r.kanji.presentation.common.theme.Dimens
+import ua.syt0r.kanji.presentation.common.theme.neutralButtonColors
 import ua.syt0r.kanji.presentation.common.trackOverlay
 import ua.syt0r.kanji.presentation.common.ui.ClickableFuriganaText
 import ua.syt0r.kanji.presentation.screen.main.screen.info.InfoScreenContract.ScreenState
@@ -98,6 +116,58 @@ fun InfoScreenUI(
                 listSpacerState = listSpacerState,
                 onLetterClick = onLetterClick
             )
+        },
+        noData = {
+
+            val searchTerm: String
+            val message: String
+
+            when (it) {
+                is InfoScreenData.Letter -> {
+                    searchTerm = it.letter
+                    message = stringResource(Res.string.info_no_data_letter, it.letter)
+                }
+
+                is InfoScreenData.Vocab -> {
+                    searchTerm = it.kanjiReading ?: it.kanaReading ?: it.id!!.toString()
+                    message = stringResource(Res.string.info_no_data_vocab, searchTerm)
+                }
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .wrapContentWidth()
+                    .width(Dimens.ScreenWidth)
+                    .padding(Dimens.ContentPadding)
+            ) {
+
+                Text(
+                    text = message,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
+
+                val clipboardManager = LocalClipboardManager.current
+                Button(
+                    onClick = { clipboardManager.setText(AnnotatedString(searchTerm)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.neutralButtonColors()
+                ) {
+                    Text(text = stringResource(Res.string.info_no_data_copy))
+                }
+
+                val uriHandler = LocalUriHandler.current
+                Button(
+                    onClick = {
+                        uriHandler.openUri(InfoScreenContract.getJishoSearchUrl(searchTerm))
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.neutralButtonColors()
+                ) {
+                    Text(text = stringResource(Res.string.info_no_data_jisho))
+                }
+            }
+
         }
     )
 
@@ -109,7 +179,8 @@ private fun ScreenLayout(
     state: State<ScreenState>,
     toolbar: @Composable () -> Unit,
     letter: @Composable (LetterInfoData, LazyListState, ExtraListSpacerState) -> Unit,
-    vocab: @Composable (VocabInfoData, LazyListState, ExtraListSpacerState) -> Unit
+    vocab: @Composable (VocabInfoData, LazyListState, ExtraListSpacerState) -> Unit,
+    noData: @Composable (InfoScreenData) -> Unit
 ) {
 
     val coroutineScope = rememberCoroutineScope()
@@ -156,13 +227,8 @@ private fun ScreenLayout(
                     LoadingState()
                 }
 
-                ScreenState.NoData -> {
-                    Text(
-                        text = resolveString { info.noDataMessage },
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .wrapContentSize()
-                    )
+                is ScreenState.NoData -> {
+                    noData(screenState.data)
                 }
 
                 is ScreenState.Loaded.Letter -> {

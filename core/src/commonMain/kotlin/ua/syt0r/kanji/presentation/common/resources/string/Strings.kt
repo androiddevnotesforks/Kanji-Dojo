@@ -605,7 +605,6 @@ interface InfoScreenStrings {
     val gradeMessage: (grade: Int) -> String
     val jlptMessage: (level: Int) -> String
     val frequencyMessage: (frequency: Int) -> String
-    val noDataMessage: String
 }
 
 interface ReminderNotificationStrings {

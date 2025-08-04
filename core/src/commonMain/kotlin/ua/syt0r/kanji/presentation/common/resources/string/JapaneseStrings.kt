@@ -624,7 +624,6 @@ object JapaneseInfoScreenStrings : InfoScreenStrings {
     override val frequencyMessage: (frequency: Int) -> String = {
         "新聞頻出漢字の2500中${it}番目"
     }
-    override val noDataMessage: String = "データなし"
 
 }
 
