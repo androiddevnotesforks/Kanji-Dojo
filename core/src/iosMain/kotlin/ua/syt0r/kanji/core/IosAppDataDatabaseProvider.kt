@@ -37,15 +37,22 @@ class IosAppDataDatabaseProvider : AppDataDatabaseProvider {
         }
 
         val sqlDriver = newDriverConnection()
-        val currentAppDataDBVersion = sqlDriver.readUserVersion()
-        Logger.d("currentAppDataDBVersion[$currentAppDataDBVersion]")
-
-        if (currentAppDataDBVersion != AppDataDatabaseVersion) {
-            sqlDriver.close()
+        runCatching {
+            val currentAppDataDBVersion = sqlDriver.readUserVersion()
+            Logger.d("currentAppDataDBVersion[$currentAppDataDBVersion]")
+            if (currentAppDataDBVersion != AppDataDatabaseVersion) {
+                sqlDriver.close()
+                copyDatabaseFromResources()
+                AppDataDatabase(newDriverConnection())
+            } else {
+                AppDataDatabase(sqlDriver)
+            }
+        }.getOrElse {
+            Logger.d("newDriverConnection error")
+            it.printStackTrace()
+            runCatching { sqlDriver.close() }
             copyDatabaseFromResources()
             AppDataDatabase(newDriverConnection())
-        } else {
-            AppDataDatabase(sqlDriver)
         }
     }
 
@@ -67,9 +74,10 @@ class IosAppDataDatabaseProvider : AppDataDatabaseProvider {
 
     @OptIn(ExperimentalResourceApi::class)
     private fun copyDatabaseFromResources() {
-        val prepackedPath = Path(
-            Res.getUri("files/$AppDataDatabaseResourceName").formattedIosFilePath()
-        )
+        val uri = Res.getUri("files/$AppDataDatabaseResourceName")
+        val formattedUri = uri.formattedIosFilePath()
+        Logger.d("copyDatabaseFromResources formattedUri[$formattedUri]")
+        val prepackedPath = Path(formattedUri)
         val destinationPath = Path(databasePath, databaseName)
 
         val source = SystemFileSystem.source(prepackedPath)
