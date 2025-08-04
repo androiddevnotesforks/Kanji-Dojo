@@ -101,6 +101,7 @@ data class SelectedReadingAnswer(
 
 data class VocabExampleSentence(
     val text: String,
+    val furigana: FuriganaString,
     val translation: String
 )
 

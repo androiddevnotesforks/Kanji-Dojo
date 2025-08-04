@@ -88,12 +88,20 @@ fun VocabPracticeFlashcardUI(
             reviewState.exampleSentence?.let {
                 Spacer(Modifier.height(Dimens.SpacingBig))
                 SelectionContainer {
-                    Text(
-                        text = it.text,
-                        style = MaterialTheme.typography.bodyLarge,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.width(Dimens.ScreenWidth)
-                    )
+                    if (showTranslation) {
+                        FuriganaText(
+                            it.furigana,
+                            textStyle = MaterialTheme.typography.bodyLarge.copy(textAlign = TextAlign.Center),
+                            modifier = Modifier.width(Dimens.ScreenWidth)
+                        )
+                    } else {
+                        Text(
+                            text = it.text,
+                            style = MaterialTheme.typography.bodyLarge,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.width(Dimens.ScreenWidth)
+                        )
+                    }
                 }
                 if (showTranslation) {
                     SelectionContainer {

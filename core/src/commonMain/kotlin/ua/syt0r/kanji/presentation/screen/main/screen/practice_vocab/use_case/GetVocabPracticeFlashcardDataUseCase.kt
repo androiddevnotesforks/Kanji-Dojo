@@ -44,6 +44,7 @@ class DefaultGetVocabPracticeFlashcardDataUseCase(
             exampleSentence = sentence?.let {
                 VocabExampleSentence(
                     text = it.value,
+                    it.furigana,
                     translation = it.translation
                 )
             },
