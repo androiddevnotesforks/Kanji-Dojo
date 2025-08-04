@@ -133,14 +133,14 @@ sealed interface VocabPracticeItemData {
         override fun toReviewState(
             coroutineScope: CoroutineScope
         ) = MutableVocabReviewState.Reading(
-            question,
-            revealedReading,
-            hiddenReading,
-            meaning,
-            answers,
-            correctAnswer,
-            showMeaning,
-            vocabReference
+            questionCharacter = question,
+            revealedReading = revealedReading,
+            hiddenReading = hiddenReading,
+            meaning = meaning,
+            answers = answers.shuffled(),
+            correctAnswer = correctAnswer,
+            showMeaning = showMeaning,
+            vocabReference = vocabReference
         )
     }
 
