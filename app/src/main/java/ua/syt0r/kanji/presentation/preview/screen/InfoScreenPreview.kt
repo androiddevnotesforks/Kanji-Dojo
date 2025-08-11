@@ -5,6 +5,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.tooling.preview.Preview
 import ua.syt0r.kanji.presentation.common.theme.AppTheme
 import ua.syt0r.kanji.presentation.screen.main.screen.info.InfoScreenContract.ScreenState
+import ua.syt0r.kanji.presentation.screen.main.screen.info.InfoScreenData
 import ua.syt0r.kanji.presentation.screen.main.screen.info.InfoScreenUI
 
 
@@ -28,5 +29,5 @@ private fun Preview(
 @Preview
 @Composable
 private fun NoDataPreview() {
-    Preview(ScreenState.NoData)
+    Preview(ScreenState.NoData(InfoScreenData.Letter("A")))
 }
