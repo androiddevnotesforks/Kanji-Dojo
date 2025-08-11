@@ -49,6 +49,19 @@ fun VersionChangeDialog(
             LazyColumn(
                 modifier = Modifier.weight(1f).fillMaxWidth()
             ) {
+                version("2.1.9", LocalDate(2025, 8, 15)) {
+                    append(
+                        """
+                        - Added furigana for sentences
+                        - Improved sentences ranking
+                        - Added saving for the last selected shuffle and new cards order practice configurations
+                        - Added more detailed card suggestions for text analysis for words with multiple dictionary entries
+                        - Added clipboard copy and Jisho search for unknown dictionary terms
+                        - Added readings shuffling for each review when doing reading picker vocab practice
+                        - Added account deletion button
+                        """.trimIndent()
+                    )
+                }
                 version("2.1.8", LocalDate(2025, 5, 24)) {
                     append(
                         """
