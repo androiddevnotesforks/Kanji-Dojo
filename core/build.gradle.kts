@@ -33,6 +33,7 @@ kotlin {
                 api(compose.foundation)
                 api(compose.material)
                 api(compose.material3)
+                api(libs.material3.window.size.clazz)
                 api(compose.runtime)
                 api(compose.materialIconsExtended)
                 api(compose.components.resources)
