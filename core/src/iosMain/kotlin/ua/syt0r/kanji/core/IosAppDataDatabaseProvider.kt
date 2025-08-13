@@ -29,31 +29,13 @@ class IosAppDataDatabaseProvider : AppDataDatabaseProvider {
     @OptIn(ExperimentalResourceApi::class)
     override fun provideAsync(): Deferred<AppDataDatabase> = coroutineScope.async {
         SystemFileSystem.createDirectories(databasePath)
-
         val databaseFile = Path(databasePath, databaseName)
-
-        if (!SystemFileSystem.exists(databaseFile)) {
-            copyDatabaseFromResources()
+        if (SystemFileSystem.exists(databaseFile)) {
+            SystemFileSystem.delete(databaseFile)
         }
 
-        val sqlDriver = newDriverConnection()
-        runCatching {
-            val currentAppDataDBVersion = sqlDriver.readUserVersion()
-            Logger.d("currentAppDataDBVersion[$currentAppDataDBVersion]")
-            if (currentAppDataDBVersion != AppDataDatabaseVersion) {
-                sqlDriver.close()
-                copyDatabaseFromResources()
-                AppDataDatabase(newDriverConnection())
-            } else {
-                AppDataDatabase(sqlDriver)
-            }
-        }.getOrElse {
-            Logger.d("newDriverConnection error")
-            it.printStackTrace()
-            runCatching { sqlDriver.close() }
-            copyDatabaseFromResources()
-            AppDataDatabase(newDriverConnection())
-        }
+        copyDatabaseFromResources()
+        AppDataDatabase(newDriverConnection())
     }
 
     @OptIn(ExperimentalResourceApi::class)
