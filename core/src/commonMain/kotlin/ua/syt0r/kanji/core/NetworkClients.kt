@@ -12,6 +12,10 @@ import io.ktor.client.plugins.auth.providers.bearer
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
@@ -47,6 +51,14 @@ class DefaultNetworkClients(
     private val appPreferences: PreferencesContract.AppPreferences,
     engineFactory: HttpClientEngineFactory<*>
 ) : NetworkClients {
+
+    private val coroutineScope = CoroutineScope(Dispatchers.Unconfined)
+
+    init {
+        appPreferences.refreshToken.onModified
+            .onEach { invalidateTokens() }
+            .launchIn(coroutineScope)
+    }
 
     override val unauthenticatedClient: HttpClient = HttpClient(engineFactory)
     override val authenticatedClient: HttpClient = HttpClient(engineFactory) {
