@@ -52,8 +52,7 @@ Repository with dictionary data and parsers here: [Kanji-Dojo-Data](https://gith
 2. [Google Play](https://play.google.com/store/apps/details?id=ua.syt0r.kanji)
 
 ### iOS
-[![App Store](https://img.shields.io/badge/_-blue?style=for-the-badge&logo=appstore&logoColor=blue&label=App%20Store&labelColor=white&color=white
-)](https://apps.apple.com/ua/app/kanji-dojo/id6745169386]]
+[![App Store](https://img.shields.io/badge/App_Store-blue?style=for-the-badge&logo=appstore&logoColor=blue&color=white)](https://apps.apple.com/ua/app/kanji-dojo/id6745169386)
 
 ### Desktop
 
