@@ -2,7 +2,7 @@ package ua.syt0r.kanji.core.logger
 
 import android.util.Log
 
-private const val LogTag = "KanjiDrawer"
+private const val LogTag = "KanjiDojo"
 
 actual fun platformLogMessage(message: String) {
     Log.d(
@@ -30,4 +30,15 @@ private fun createBaseMessage() = buildString {
     append(":")
     append(invokingStackTrace.methodName)
 
+}
+
+actual fun platformLogError(message: String) {
+    Log.e(
+        LogTag,
+        buildString {
+            append(createBaseMessage())
+            append(" ")
+            append(message)
+        }
+    )
 }

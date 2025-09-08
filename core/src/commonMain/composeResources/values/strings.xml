@@ -43,7 +43,7 @@
     <string name="text_analysis_history_empty">No history</string>
 
     <string name="text_analysis_offer_title">Analyze your own text, save letters and words</string>
-    <string name="text_analysis_offer_subtitle">Requires account and paid subscription. Free during preview until further notice</string>
+    <string name="text_analysis_offer_subtitle">Requires account. Free during preview until further notice, follow announcements on our Discord server for updates</string>
     <string name="text_analysis_input_placeholder">Enter text here</string>
     <string name="text_analysis_translation_placeholder">Translation</string>
 

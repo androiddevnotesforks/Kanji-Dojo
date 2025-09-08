@@ -239,7 +239,12 @@ class SqlDelightAppDataRepository(
     }
 
     override suspend fun getSentencesWithTextCount(text: String): Int = vocabQuery {
-        getSentencesWithTextCount(text).executeAsOne().toInt()
+        runCatching {
+            getSentencesWithTextCount(text).executeAsOne().toInt()
+        }.getOrElse {
+            Logger.e(it.message ?: it.stackTraceToString())
+            0
+        }
     }
 
     override suspend fun getSentencesWithText(
@@ -247,15 +252,22 @@ class SqlDelightAppDataRepository(
         offset: Int,
         limit: Int
     ): List<Sentence> = vocabQuery {
-        getSentencesWithText(text = text, offset = offset.toLong(), limit = limit.toLong())
-            .executeAsList()
-            .map {
-                Sentence(
-                    value = it.sentence,
-                    translation = it.translation,
-                    furigana = it.furigana.parseAsFurigana()
-                )
-            }
+        val rows = runCatching {
+            // TODO remove try catch after investigation
+            getSentencesWithText(text = text, offset = offset.toLong(), limit = limit.toLong())
+                .executeAsList()
+        }.getOrElse {
+            Logger.e(it.message ?: it.stackTraceToString())
+            emptyList()
+        }
+
+        rows.map {
+            Sentence(
+                value = it.sentence,
+                translation = it.translation,
+                furigana = it.furigana.parseAsFurigana()
+            )
+        }
     }
 
     override suspend fun getWordSenses(idList: Set<Long>): List<VocabSenseGroup> = vocabQuery {

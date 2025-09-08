@@ -16,10 +16,15 @@ object Logger : KoinComponent {
         if (configuration.isEnabled) platformLogMethod()
     }
 
+    fun e(message: String) {
+        platformLogError(message)
+    }
+
 }
 
 expect fun platformLogMessage(message: String)
 expect fun platformLogMethod()
+expect fun platformLogError(message: String)
 
 data class LoggerConfiguration(
     val isEnabled: Boolean

@@ -727,9 +727,9 @@ object EnglishSyncScreenStrings : SyncScreenStrings {
     override val guideStepAccountTitle = "Create account and sign in"
     override val guideStepAccountMessage: String = "Go to account"
     override val guideStepSubscriptionTitle =
-        "Purchase subscription (free during preview until further notice)"
+        "Might require a paid subscription in future"
     override val guideStepSubscriptionMessage: String =
-        "Follow announcements on Discord for updates"
+        "Free during preview until further notice, follow announcements on our Discord server for updates"
     override val accountErrorMessage: String = "There's an error with your account"
     override val syncButton = "Sync now"
     override val statusTitle = "Status"

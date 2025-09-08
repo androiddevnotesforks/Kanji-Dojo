@@ -44,6 +44,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.unit.dp
 import kotlinx.datetime.format
 import org.jetbrains.compose.resources.stringResource
@@ -63,6 +64,8 @@ import ua.syt0r.kanji.presentation.common.clickable
 import ua.syt0r.kanji.presentation.common.resources.string.resolveString
 import ua.syt0r.kanji.presentation.common.theme.errorColors
 import ua.syt0r.kanji.presentation.common.theme.snapToBiggerContainerCrossfadeTransitionSpec
+import ua.syt0r.kanji.presentation.screen.main.screen.account.AccountScreenContract.Companion.ACCOUNT_DELETE_URL
+import ua.syt0r.kanji.presentation.screen.main.screen.account.AccountScreenContract.Companion.ACCOUNT_WEB_PAGE_URL
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -135,6 +138,9 @@ fun AccountScreenSignedIn(
     refresh: () -> Unit,
     signOut: () -> Unit,
     signIn: () -> Unit,
+    showSubscriptionInfo: Boolean = true,
+    openAccountWeb: (uriHandler: UriHandler) -> Unit = { it.openUri(ACCOUNT_WEB_PAGE_URL) },
+    deleteAccount: (uriHandler: UriHandler) -> Unit = { it.openUri(ACCOUNT_DELETE_URL) },
     extraContent: @Composable (ColumnScope.() -> Unit)? = null
 ) {
 
@@ -159,14 +165,14 @@ fun AccountScreenSignedIn(
                 var showDropDown by remember { mutableStateOf(false) }
                 AppDropdownMenu(showDropDown, { showDropDown = false }) {
                     AppDropdownMenuItem(
-                        onClick = { uriHandler.openUri(AccountScreenContract.ACCOUNT_WEB_PAGE_URL) },
+                        onClick = { openAccountWeb(uriHandler) },
                         {
                             Icon(Icons.Outlined.OpenInBrowser, null)
                             Text(stringResource(Res.string.account_visit_website))
                         }
                     )
                     AppDropdownMenuItem(
-                        onClick = { uriHandler.openUri(AccountScreenContract.ACCOUNT_DELETE_URL) },
+                        onClick = { deleteAccount(uriHandler) },
                         {
                             CompositionLocalProvider(
                                 LocalContentColor provides MaterialTheme.colorScheme.error
@@ -187,10 +193,12 @@ fun AccountScreenSignedIn(
             supportingContent = { Text(email) }
         )
 
-        SubscriptionInfoListItem(
-            subscriptionInfo = subscriptionInfo,
-            refresh = refresh
-        )
+        if (showSubscriptionInfo) {
+            SubscriptionInfoListItem(
+                subscriptionInfo = subscriptionInfo,
+                refresh = refresh
+            )
+        }
 
         extraContent?.invoke(this)
 

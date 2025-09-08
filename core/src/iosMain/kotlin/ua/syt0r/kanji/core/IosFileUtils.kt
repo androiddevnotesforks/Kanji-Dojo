@@ -1,12 +1,12 @@
 package ua.syt0r.kanji.core
 
-import io.ktor.http.decodeURLPart
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.io.files.FileSystem
 import kotlinx.io.files.Path
 import platform.Foundation.NSApplicationSupportDirectory
 import platform.Foundation.NSBundle
 import platform.Foundation.NSFileManager
+import platform.Foundation.NSURL
 import platform.Foundation.NSUserDomainMask
 
 @OptIn(ExperimentalForeignApi::class)
@@ -32,10 +32,10 @@ fun getPrivateAppDataDirPath(): String {
         error = null
     )
 
-    return url.absoluteString()!!.formattedIosFilePath()
+    return url.path()!!
 }
 
-fun String.formattedIosFilePath(): String = removePrefix("file://").decodeURLPart()
+fun String.localFileUriToFilePath(): String = NSURL.URLWithString(this)!!.path!!
 
 fun FileSystem.deleteRecursively(path: Path, mustExist: Boolean = true) {
     val isDirectory = metadataOrNull(path)?.isDirectory == true

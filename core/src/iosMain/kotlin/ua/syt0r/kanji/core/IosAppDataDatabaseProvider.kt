@@ -56,19 +56,16 @@ class IosAppDataDatabaseProvider : AppDataDatabaseProvider {
 
     @OptIn(ExperimentalResourceApi::class)
     private fun copyDatabaseFromResources() {
-        val uri = Res.getUri("files/$AppDataDatabaseResourceName")
-        val formattedUri = uri.formattedIosFilePath()
-        Logger.d("copyDatabaseFromResources formattedUri[$formattedUri]")
-        val prepackedPath = Path(formattedUri)
+        val sourceUri = Res.getUri("files/$AppDataDatabaseResourceName")
+        val sourcePath = Path(sourceUri.localFileUriToFilePath())
         val destinationPath = Path(databasePath, databaseName)
+        Logger.d("copyDatabaseFromResources sourcePath[$sourcePath] destinationPath[$destinationPath]")
 
-        val source = SystemFileSystem.source(prepackedPath)
-        val sink = SystemFileSystem.sink(destinationPath)
-
-        sink.buffered().apply {
-            transferFrom(source)
-            flush()
-        }
+        SystemFileSystem.sink(destinationPath)
+            .buffered()
+            .use { sink ->
+                SystemFileSystem.source(sourcePath).use { source -> sink.transferFrom(source) }
+            }
     }
 
 }

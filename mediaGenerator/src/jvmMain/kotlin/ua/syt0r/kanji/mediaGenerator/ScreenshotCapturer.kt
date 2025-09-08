@@ -78,8 +78,8 @@ fun main() {
             ) {
                 DefaultLetterPracticeScreenContent(
                     configuration = LetterPracticeScreenConfiguration(
-                        mapOf("字" to -1),
-                        ScreenLetterPracticeType.Writing
+                        ScreenLetterPracticeType.Writing,
+                        listOf(LetterPracticeScreenConfiguration.Card("字", -1))
                     ),
                     mainNavigationState = mockk(),
                     viewModel = viewModel

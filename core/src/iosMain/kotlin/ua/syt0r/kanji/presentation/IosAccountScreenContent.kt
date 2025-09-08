@@ -5,20 +5,31 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.UriHandler
+import androidx.compose.ui.uikit.LocalUIViewController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.koin.core.module.Module
+import platform.AuthenticationServices.ASPresentationAnchor
+import platform.AuthenticationServices.ASWebAuthenticationPresentationContextProvidingProtocol
+import platform.AuthenticationServices.ASWebAuthenticationSession
+import platform.Foundation.NSURL
+import platform.UIKit.UIViewController
+import platform.darwin.NSObject
 import ua.syt0r.kanji.core.AccountManager
 import ua.syt0r.kanji.core.AccountState
 import ua.syt0r.kanji.core.ApiRequestIssue
 import ua.syt0r.kanji.core.SubscriptionInfo
+import ua.syt0r.kanji.core.logger.Logger
 import ua.syt0r.kanji.presentation.IosAccountScreenContract.ScreenState
 import ua.syt0r.kanji.presentation.screen.main.MainNavigationState
 import ua.syt0r.kanji.presentation.screen.main.screen.account.AccountScreenContainer
 import ua.syt0r.kanji.presentation.screen.main.screen.account.AccountScreenContract
+import ua.syt0r.kanji.presentation.screen.main.screen.account.AccountScreenContract.Companion.ACCOUNT_DELETE_URL
+import ua.syt0r.kanji.presentation.screen.main.screen.account.AccountScreenContract.Companion.ACCOUNT_WEB_PAGE_URL
 import ua.syt0r.kanji.presentation.screen.main.screen.account.AccountScreenError
 import ua.syt0r.kanji.presentation.screen.main.screen.account.AccountScreenLoading
 import ua.syt0r.kanji.presentation.screen.main.screen.account.AccountScreenSignedIn
@@ -52,12 +63,52 @@ object IosAccountScreenContent : AccountScreenContract.Content {
             if (data != null) viewModel.signIn(data)
         }
 
+        val viewController = LocalUIViewController.current
+
         AccountScreenUI(
             state = viewModel.state.collectAsState(),
             onUpClick = { state.navigateBack() },
-            signIn = { uriHandler.openUri(AccountScreenContract.DEEP_LINK_AUTH_URL) },
+            signIn = {
+                val authURL = NSURL(string = AccountScreenContract.DEEP_LINK_AUTH_URL)
+                val session = ASWebAuthenticationSession(
+                    uRL = authURL,
+                    callbackURLScheme = "kanji-dojo",
+                ) { url, error ->
+                    Logger.d("authCallback url[$url] error[$error]")
+                    url?.absoluteString
+                        ?.let { AccountScreenContract.parseDeepLink(it) }
+                        ?.let { viewModel.signIn(it) }
+                }
+                val authViewController = ViewControllerPresentationContextProvider(viewController)
+                session.presentationContextProvider = authViewController
+                session.start()
+            },
             signOut = { viewModel.signOut() },
-            refresh = { viewModel.refresh() }
+            refresh = { viewModel.refresh() },
+            openAccountWeb = {
+                val authURL = NSURL(string = ACCOUNT_WEB_PAGE_URL)
+                val session = ASWebAuthenticationSession(
+                    uRL = authURL,
+                    callbackURLScheme = "kanji-dojo",
+                ) { url, error ->
+                    Logger.d("deleteAccount url[$url] error[$error]")
+                }
+                val authViewController = ViewControllerPresentationContextProvider(viewController)
+                session.presentationContextProvider = authViewController
+                session.start()
+            },
+            deleteAccount = {
+                val authURL = NSURL(string = ACCOUNT_DELETE_URL)
+                val session = ASWebAuthenticationSession(
+                    uRL = authURL,
+                    callbackURLScheme = "kanji-dojo",
+                ) { url, error ->
+                    Logger.d("deleteAccount url[$url] error[$error]")
+                }
+                val authViewController = ViewControllerPresentationContextProvider(viewController)
+                session.presentationContextProvider = authViewController
+                session.start()
+            }
         )
     }
 
@@ -89,7 +140,9 @@ fun AccountScreenUI(
     onUpClick: () -> Unit,
     signIn: () -> Unit,
     signOut: () -> Unit,
-    refresh: () -> Unit
+    refresh: () -> Unit,
+    openAccountWeb: (uriHandler: UriHandler) -> Unit,
+    deleteAccount: (UriHandler) -> Unit,
 ) {
 
     AccountScreenContainer(
@@ -115,7 +168,10 @@ fun AccountScreenUI(
                     issue = screenState.issue,
                     refresh = refresh,
                     signOut = signOut,
-                    signIn = signIn
+                    signIn = signIn,
+                    showSubscriptionInfo = false,
+                    openAccountWeb = openAccountWeb,
+                    deleteAccount = deleteAccount
                 )
             }
 
@@ -169,6 +225,19 @@ class IosAccountScreenViewModel(
 
     fun refresh() {
         accountManager.refreshUserData()
+    }
+
+}
+
+class ViewControllerPresentationContextProvider(
+    val viewController: UIViewController
+) : NSObject(),
+    ASWebAuthenticationPresentationContextProvidingProtocol {
+
+    override fun presentationAnchorForWebAuthenticationSession(
+        session: ASWebAuthenticationSession
+    ): ASPresentationAnchor? {
+        return viewController.view.window
     }
 
 }

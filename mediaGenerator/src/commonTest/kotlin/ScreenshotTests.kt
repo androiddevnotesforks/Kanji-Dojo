@@ -72,7 +72,14 @@ class ScreenshotTests {
             darkTheme = false
         )
 
-        val configurations = listOf(portraitPhone, landscapePhone)
+        val ipadLandscape = ComposableRecorderTestConfiguration(
+            size = IntSize(2732, 2048),
+            density = Density(2.5f),
+            orientation = Orientation.Landscape,
+            darkTheme = false
+        )
+
+        val configurations = listOf(ipadLandscape)
 
         @BeforeClass
         @JvmStatic
@@ -113,8 +120,8 @@ class ScreenshotTests {
         ) {
             DefaultLetterPracticeScreenContent(
                 configuration = LetterPracticeScreenConfiguration(
-                    mapOf("字" to -1),
-                    ScreenLetterPracticeType.Writing
+                    ScreenLetterPracticeType.Writing,
+                    listOf(LetterPracticeScreenConfiguration.Card("字", -1))
                 ),
                 mainNavigationState = mockk(),
                 viewModel = viewModel
@@ -173,8 +180,8 @@ class ScreenshotTests {
         ) {
             DefaultLetterPracticeScreenContent(
                 configuration = LetterPracticeScreenConfiguration(
-                    mapOf("番" to -1),
-                    ScreenLetterPracticeType.Reading
+                    ScreenLetterPracticeType.Reading,
+                    listOf(LetterPracticeScreenConfiguration.Card("番", -1))
                 ),
                 mainNavigationState = mockk(),
                 viewModel = viewModel
@@ -219,7 +226,7 @@ class ScreenshotTests {
         ) {
             VocabPracticeScreen(
                 configuration = VocabPracticeScreenConfiguration(
-                    mapOf(1L to -1),
+                    listOf(VocabPracticeScreenConfiguration.Card(1, 1)),
                     ScreenVocabPracticeType.ReadingPicker
                 ),
                 mainNavigationState = mockk(),

@@ -15,8 +15,8 @@ import ua.syt0r.kanji.core.IosUserDataDatabasePlatformHandler
 import ua.syt0r.kanji.core.app_data.AppDataDatabaseProvider
 import ua.syt0r.kanji.core.file.IosPlatformFileHandler
 import ua.syt0r.kanji.core.file.PlatformFileHandler
-import ua.syt0r.kanji.core.formattedIosFilePath
 import ua.syt0r.kanji.core.getPrivateAppDataDirPath
+import ua.syt0r.kanji.core.localFileUriToFilePath
 import ua.syt0r.kanji.core.logger.LoggerConfiguration
 import ua.syt0r.kanji.core.sync.IosSyncBackupFileProvider
 import ua.syt0r.kanji.core.sync.SyncBackupFileProvider
@@ -64,10 +64,10 @@ actual val platformComponentsModule: Module = module {
     }
 
     factory<KanaVoiceData> {
-        Neural2BKanaVoiceData(
-            assetPath = Res.getUri("files/${IosMainBuildConfig.kanaVoiceAssetName}")
-                .formattedIosFilePath()
-        )
+        val voicePath = Res
+            .getUri("files/${IosMainBuildConfig.kanaVoiceAssetName}")
+            .localFileUriToFilePath()
+        Neural2BKanaVoiceData(assetPath = voicePath)
     }
 
     single<SponsorScreenContract.Content> { IosSponsorScreenContent }

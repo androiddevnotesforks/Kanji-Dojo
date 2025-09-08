@@ -16,6 +16,10 @@ actual fun platformLogMethod() {
     println(createBaseMessage())
 }
 
+actual fun platformLogError(message: String) {
+    System.err.println(createBaseMessage() + " $message")
+}
+
 private fun createBaseMessage() = buildString {
 
     val threadName = Thread.currentThread().name

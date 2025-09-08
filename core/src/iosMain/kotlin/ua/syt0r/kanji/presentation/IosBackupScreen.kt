@@ -25,7 +25,6 @@ import ua.syt0r.kanji.core.backup.BackupManager
 import ua.syt0r.kanji.core.emitWhenWithSubscribers
 import ua.syt0r.kanji.core.file.PlatformFile
 import ua.syt0r.kanji.core.file.PlatformFileHandler
-import ua.syt0r.kanji.core.formattedIosFilePath
 import ua.syt0r.kanji.core.getPrivateAppDataDirPath
 import ua.syt0r.kanji.core.logger.Logger
 import ua.syt0r.kanji.core.toLocalDateTime
@@ -246,7 +245,7 @@ private class IosBackupFilePicker(
                 didPickDocumentAtURL: NSURL
             ) {
                 Logger.d("documentPicker")
-                val path = didPickDocumentAtURL.absoluteString!!.formattedIosFilePath()
+                val path = didPickDocumentAtURL.path!!
                 Logger.d("documentPicker path[$path]")
                 val result = FilePickResult.Picked(PlatformFile(path))
                 when {

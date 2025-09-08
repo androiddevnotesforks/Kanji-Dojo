@@ -3,7 +3,7 @@
   <img src="preview_assets//inkscape_icon.svg" height=120 style="border-radius: 20px;">
 
   # Kanji Dojo
-  ![Version Badge](https://img.shields.io/badge/version-v2.1.8-blue?style=for-the-badge&labelColor=ffffff&color=ff5555)
+  ![Version Badge](https://img.shields.io/badge/version-v2.1.9-blue?style=for-the-badge&labelColor=ffffff&color=ff5555)
 
 </div>
 
@@ -50,6 +50,10 @@ Repository with dictionary data and parsers here: [Kanji-Dojo-Data](https://gith
 
 1. Available in [F-Droid](https://f-droid.org/en/packages/ua.syt0r.kanji.fdroid/), the same version is published in [GitHub Releases](https://github.com/syt0r/Kanji-Dojo/releases/latest)
 2. [Google Play](https://play.google.com/store/apps/details?id=ua.syt0r.kanji)
+
+### iOS
+[![App Store](https://img.shields.io/badge/_-blue?style=for-the-badge&logo=appstore&logoColor=blue&label=App%20Store&labelColor=white&color=white
+)](https://apps.apple.com/ua/app/kanji-dojo/id6745169386]]
 
 ### Desktop
 

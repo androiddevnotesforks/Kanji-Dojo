@@ -7,14 +7,16 @@ import Firebase
 @main
 struct KanjiDojoApp: App {
     
-    let kotlinApplication = IosKotlinApplication(
-        japaneseUtils: SwiftWanakanaJapaneseUtils(),
-        kanaTtsManagerProvider: { voiceData in SwiftTtsKanaManager(voiceData) },
-        backupArchiveHandlerProvider: { SwiftBackupArchiveHandler() }
-    )
+    let kotlinApplication: IosKotlinApplication
     
     init() {
         FirebaseApp.configure()
+        kotlinApplication = IosKotlinApplication(
+            logger: SwiftNativeLogger(),
+            japaneseUtils: SwiftWanakanaJapaneseUtils(),
+            kanaTtsManagerProvider: { voiceData in SwiftTtsKanaManager(voiceData) },
+            backupArchiveHandlerProvider: { SwiftBackupArchiveHandler() }
+        )
     }
     
     var body: some Scene {
@@ -24,6 +26,23 @@ struct KanjiDojoApp: App {
                     kotlinApplication.notifyDeepLink(url: url.absoluteString)
                 }
         }
+    }
+    
+}
+
+class SwiftNativeLogger : CoreNativeLogger {
+    
+    func logInfo(message: String) {
+        NSLog(message)
+    }
+    
+    func logError(message: String) {
+        NSLog(message)
+        let userInfo = ["message": message]
+        let error = NSError(domain: "error",
+                            code: 1,
+                            userInfo: userInfo)
+        Crashlytics.crashlytics().record(error: error)
     }
     
 }

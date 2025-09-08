@@ -2,7 +2,6 @@ package ua.syt0r.kanji.presentation.screen.main.features
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import io.ktor.http.Url
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -30,13 +29,8 @@ class DeepLinkHandler(
         LaunchedEffect(Unit) {
             deepLinksFlow.collectLatest {
                 val destination = when {
-                    it.startsWith("kanji-dojo://signin") -> {
-                        val data = Url(it).parameters.run {
-                            AccountScreenContract.ScreenData(
-                                refreshToken = get("refreshToken") ?: return@run null,
-                                idToken = get("idToken") ?: return@run null
-                            )
-                        }
+                    it.startsWith(AccountScreenContract.DEEP_LINK_AUTH_REDIRECT_URL) -> {
+                        val data = AccountScreenContract.parseDeepLink(it)
                         if (data != null) {
                             MainDestination.Account(data)
                         } else {
