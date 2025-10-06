@@ -54,7 +54,7 @@ class VocabCardResolver(
             dictionaryId = vocabCard.data.dictionaryId,
             kanjiReading = kanjiReading,
             kanaReading = kanaReading,
-            furigana = dicData?.furigana,
+            furigana = kanjiReading?.let { dicData?.furigana },
             meaning = vocabCard.data.meaning
                 ?: dicData?.meaning
                 ?: getString(Res.string.vocab_card_missing_meaning),

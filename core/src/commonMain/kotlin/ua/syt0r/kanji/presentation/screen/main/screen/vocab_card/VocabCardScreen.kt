@@ -139,7 +139,7 @@ private fun ScreenUI(
                         ReadingSuggestionButton(
                             fieldValue = screenState.kanji,
                             options = screenState.kanjiOptions,
-                            enabled = screenState.kanjiEnabled.value.not()
+                            enabled = screenState.kanjiOptions.isNotEmpty()
                         )
                     },
                     modifier = textFieldModifier
@@ -159,9 +159,9 @@ private fun ScreenUI(
                     onValueChange = { screenState.kana.value = it },
                     trailingContent = {
                         ReadingSuggestionButton(
-                            screenState.kana,
-                            screenState.kanaOptions,
-                            screenState.kanjiEnabled.value.not()
+                            fieldValue = screenState.kana,
+                            options = screenState.kanaOptions,
+                            enabled = screenState.kanaOptions.isNotEmpty()
                         )
                     },
                     modifier = textFieldModifier
