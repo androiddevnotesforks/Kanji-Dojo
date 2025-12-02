@@ -6,12 +6,15 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
+import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.minus
 import kotlinx.datetime.toLocalDateTime
 import ua.syt0r.kanji.core.logger.Logger
 import ua.syt0r.kanji.core.time.TimeUtils
+import ua.syt0r.kanji.core.user_data.preferences.PreferencesContract
 import kotlin.time.measureTime
 
 abstract class SrsManager<ItemType, PracticeType, Deck>(
@@ -19,6 +22,7 @@ abstract class SrsManager<ItemType, PracticeType, Deck>(
     srsChangesFlow: SharedFlow<Unit>,
     private val dailyLimitManager: DailyLimitManager,
     private val timeUtils: TimeUtils,
+    private val appPreferences: PreferencesContract.AppPreferences,
     coroutineScope: CoroutineScope
 ) where PracticeType : ua.syt0r.kanji.core.srs.PracticeType,
         Deck : SrsDeckData<PracticeType, ItemType> {
@@ -35,7 +39,8 @@ abstract class SrsManager<ItemType, PracticeType, Deck>(
         merge(
             deckChangesFlow,
             srsChangesFlow,
-            dailyLimitManager.changesFlow
+            dailyLimitManager.changesFlow,
+            appPreferences.dailyResetTime.onModified
         )
             .onEach {
                 cache = null
@@ -54,7 +59,7 @@ abstract class SrsManager<ItemType, PracticeType, Deck>(
         dueDoneToday: Int
     ): DeckLimit.EnabledDeckLimit
 
-    abstract fun createDeck(
+    abstract suspend fun createDeck(
         deckDescriptor: SrsDeckDescriptor<ItemType, PracticeType>,
         deckLimit: DeckLimit,
         currentSrsDate: LocalDate
@@ -131,11 +136,17 @@ abstract class SrsManager<ItemType, PracticeType, Deck>(
         ).also { cache = it }
     }
 
-    protected fun Instant.toSrsDate(): LocalDate {
-        return toLocalDateTime(TimeZone.currentSystemDefault()).date
+    protected suspend fun Instant.toSrsDate(): LocalDate {
+        val localDateTime = toLocalDateTime(TimeZone.currentSystemDefault())
+        val resetTime = appPreferences.dailyResetTime.get()
+        return if (localDateTime.time < resetTime) {
+            localDateTime.date.minus(1, DateTimeUnit.DAY)
+        } else {
+            localDateTime.date
+        }
     }
 
-    protected fun getSrsStatus(srsCard: SrsCard?): SrsItemStatus {
+    protected suspend fun getSrsStatus(srsCard: SrsCard?): SrsItemStatus {
         val expectedReviewTime = srsCard?.run { lastReview?.plus(interval) }
         val expectedReviewDate = expectedReviewTime?.toSrsDate()
         val currentDate = timeUtils.now().toSrsDate()
@@ -146,7 +157,7 @@ abstract class SrsManager<ItemType, PracticeType, Deck>(
         }
     }
 
-    protected fun PracticeTypeDeckData<ItemType>.toProgress(
+    protected suspend fun PracticeTypeDeckData<ItemType>.toProgress(
         deckLimit: DeckLimit,
         practiceType: PracticeType,
         today: LocalDate

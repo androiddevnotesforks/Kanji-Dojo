@@ -98,3 +98,4 @@ lint/tmp/
 
 google-services.json
 app/linux/**
+.DS_Store

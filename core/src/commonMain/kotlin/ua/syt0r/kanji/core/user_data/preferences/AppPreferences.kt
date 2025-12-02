@@ -211,4 +211,11 @@ class AppPreferences(
         initialValue = { false }
     )
 
+    override val dailyResetTime: SuspendedProperty<LocalTime> = createProperty(
+        type = LocalTimeSuspendedPropertyType,
+        key = "daily_reset_time",
+        initialValue = { LocalTime(0, 0) },
+        affectSync = true
+    )
+
 }

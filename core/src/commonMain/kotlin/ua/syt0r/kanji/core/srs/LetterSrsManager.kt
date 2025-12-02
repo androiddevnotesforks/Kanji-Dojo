@@ -42,6 +42,7 @@ class DefaultLetterSrsManager(
     srsChangesFlow = srsCardRepository.changesFlow,
     dailyLimitManager = dailyLimitManager,
     timeUtils = timeUtils,
+    appPreferences = appPreferences,
     coroutineScope = coroutineScope
 ), LetterSrsManager {
 
@@ -123,7 +124,7 @@ class DefaultLetterSrsManager(
         }
     }
 
-    override fun createDeck(
+    override suspend fun createDeck(
         deckDescriptor: LetterSrsDeckDescriptor,
         deckLimit: DeckLimit,
         currentSrsDate: LocalDate

@@ -122,6 +122,7 @@ fun ExperimentalMultiplatformDialog(
             Column(
                 modifier = Modifier
                     .padding(horizontal = if (paddedContent) 20.dp else 0.dp)
+                    .fillMaxWidth()
                     .weight(1f)
                     .verticalScroll(contentScrollState),
                 verticalArrangement = contentVerticalArrangement

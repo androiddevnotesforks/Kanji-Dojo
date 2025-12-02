@@ -53,6 +53,7 @@ interface PreferencesContract {
         val vocabDashboardPracticeType: SuspendedProperty<PreferencesVocabPracticeType>
         val vocabDashboardSortByTime: SuspendedProperty<Boolean>
 
+        val dailyResetTime: SuspendedProperty<LocalTime>
     }
 
     interface PracticePreferences {

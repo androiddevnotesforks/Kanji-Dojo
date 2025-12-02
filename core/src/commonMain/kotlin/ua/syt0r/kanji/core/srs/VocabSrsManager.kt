@@ -41,6 +41,7 @@ class DefaultVocabSrsManager(
     srsChangesFlow = srsCardRepository.changesFlow,
     dailyLimitManager = dailyLimitManager,
     timeUtils = timeUtils,
+    appPreferences = appPreferences,
     coroutineScope = coroutineScope
 ), VocabSrsManager {
 
@@ -120,7 +121,7 @@ class DefaultVocabSrsManager(
         }
     }
 
-    override fun createDeck(
+    override suspend fun createDeck(
         deckDescriptor: VocabSrsDeckDescriptor,
         deckLimit: DeckLimit,
         currentSrsDate: LocalDate

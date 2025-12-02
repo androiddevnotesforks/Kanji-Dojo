@@ -38,6 +38,8 @@
     <string name="social_discord">Discord</string>
     <string name="social_youtube">YouTube</string>
 
+    <string name="setting_daily_reset_time_item">Daily Reset Time</string>
+
     <string name="text_analysis_title">Text Analysis</string>
     <string name="text_analysis_history_title">History</string>
     <string name="text_analysis_history_empty">No history</string>

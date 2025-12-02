@@ -2,6 +2,8 @@ package ua.syt0r.kanji.core.user_data.database.sqldelight
 
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalTime
+import ua.syt0r.kanji.core.logger.Logger
 import ua.syt0r.kanji.core.user_data.database.ReviewHistoryItem
 import ua.syt0r.kanji.core.user_data.database.ReviewHistoryRepository
 import ua.syt0r.kanji.core.user_data.database.ReviewHistoryStatItem
@@ -84,14 +86,23 @@ class SqlDelightReviewHistoryRepository(
             ?: Duration.ZERO
     }
 
-    override suspend fun getStreaks() = userDataDatabaseManager.readTransaction {
-        getReviewStreaks().executeAsList()
-            .map {
-                StreakData(
-                    start = LocalDate.parse(it.start_date!!),
-                    end = LocalDate.parse(it.end_date!!),
-                    length = it.sequence_length.toInt()
-                )
+    override suspend fun getStreaks(
+        timeOffset: LocalTime
+    ) = userDataDatabaseManager.readTransaction {
+        val offsetMillis = timeOffset.toMillisecondOfDay().toLong()
+        getReviewStreaks(offsetMillis).executeAsList()
+            .mapNotNull {
+                runCatching {
+                    StreakData(
+                        start = LocalDate.parse(it.start_date!!),
+                        end = LocalDate.parse(it.end_date!!),
+                        length = it.sequence_length.toInt()
+                    )
+                }.getOrElse { error ->
+                    Logger.d("error")
+                    null
+                }
+
             }
     }
 

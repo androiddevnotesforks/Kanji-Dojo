@@ -19,7 +19,8 @@ val statsScreenModule = module {
         DefaultSubscribeOnStatsDataUseCase(
             letterSrsManager = get(),
             reviewHistoryRepository = get(),
-            timeUtils = get()
+            timeUtils = get(),
+            appPreferences = get()
         )
     }
 

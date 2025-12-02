@@ -5,6 +5,7 @@ import org.koin.dsl.module
 import ua.syt0r.kanji.presentation.multiplatformViewModel
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.settings.items.DefaultHomeTabSettingItem
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.settings.items.ThemeSettingItem
+import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.settings.items.DailyResetTimeSettingItem
 
 val defaultSettingItemsQualifier = qualifier("default_setting_items")
 val settingItemsQualifier = qualifier("setting_items")
@@ -22,7 +23,8 @@ val settingsScreenModule = module {
     factory(defaultSettingItemsQualifier) {
         listOf(
             ThemeSettingItem(themeManager = get()),
-            DefaultHomeTabSettingItem(appPreferences = get())
+            DefaultHomeTabSettingItem(appPreferences = get()),
+            DailyResetTimeSettingItem(appPreferences = get())
         )
     }
 

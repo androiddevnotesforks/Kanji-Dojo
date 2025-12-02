@@ -10,8 +10,10 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
+import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
 import ua.syt0r.kanji.core.RefreshableData
@@ -22,6 +24,7 @@ import ua.syt0r.kanji.core.srs.LetterSrsManager
 import ua.syt0r.kanji.core.srs.VocabPracticeType
 import ua.syt0r.kanji.core.time.TimeUtils
 import ua.syt0r.kanji.core.user_data.database.ReviewHistoryRepository
+import ua.syt0r.kanji.core.user_data.preferences.PreferencesContract
 import ua.syt0r.kanji.presentation.LifecycleState
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.stats.DayStats
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.stats.RefreshableStats
@@ -30,6 +33,7 @@ import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.stats.TimePeri
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.stats.TotalStats
 import ua.syt0r.kanji.presentation.screen.main.screen.home.screen.stats.YearMonth
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 
 interface SubscribeOnStatsDataUseCase {
@@ -39,7 +43,8 @@ interface SubscribeOnStatsDataUseCase {
 class DefaultSubscribeOnStatsDataUseCase(
     private val letterSrsManager: LetterSrsManager,
     private val reviewHistoryRepository: ReviewHistoryRepository,
-    private val timeUtils: TimeUtils
+    private val timeUtils: TimeUtils,
+    private val appPreferences: PreferencesContract.AppPreferences
 ) : SubscribeOnStatsDataUseCase {
 
     override fun invoke(
@@ -54,26 +59,40 @@ class DefaultSubscribeOnStatsDataUseCase(
 
     private suspend fun getStats(coroutineScope: CoroutineScope): StatsData {
         Logger.logMethod()
-        val today = timeUtils.getCurrentDate()
+
+        val resetTime = appPreferences.dailyResetTime.get()
+        val currentDateTime = timeUtils.getCurrentTime()
+        val today = if (currentDateTime.time < resetTime) {
+            currentDateTime.date.minus(1, DateTimeUnit.DAY)
+        } else {
+            currentDateTime.date
+        }
 
         return StatsData(
-            todayStats = getDayStats(today),
+            todayStats = getDayStats(today, resetTime),
             monthStats = refreshableStats(
                 coroutineScope = coroutineScope,
                 initialTimePeriod = YearMonth(today.year, today.month),
-                statsProvider = { getMonthStats(it) }
+                statsProvider = { getMonthStats(it, resetTime) }
             ),
             yearStats = refreshableStats(
                 coroutineScope = coroutineScope,
                 initialTimePeriod = today.year,
-                statsProvider = { getYearStats(it) }
+                statsProvider = { getYearStats(it, resetTime) }
             ),
             totalStats = getTotalStats()
         )
     }
 
-    private suspend fun getDayStats(date: LocalDate): DayStats {
-        val stats = getStatsForPeriod(date, date.plus(1, DateTimeUnit.DAY))
+    private suspend fun getDayStats(
+        date: LocalDate,
+        resetTime: LocalTime
+    ): DayStats {
+        val stats = getStatsForPeriod(
+            start = date,
+            end = date.plus(1, DateTimeUnit.DAY),
+            resetTime = resetTime
+        )
         val reviews = stats.dateToReviewsMap.entries.firstOrNull()?.value ?: emptyList()
         return DayStats(
             date = date,
@@ -113,16 +132,22 @@ class DefaultSubscribeOnStatsDataUseCase(
         )
     }
 
-    private suspend fun getMonthStats(month: YearMonth): TimePeriodStats {
+    private suspend fun getMonthStats(
+        month: YearMonth,
+        resetTime: LocalTime
+    ): TimePeriodStats {
         val monthStart = LocalDate(month.year, month.month, 1)
         val monthEnd = monthStart.plus(1, DateTimeUnit.MONTH)
-        return getStatsForPeriod(monthStart, monthEnd)
+        return getStatsForPeriod(monthStart, monthEnd, resetTime)
     }
 
-    private suspend fun getYearStats(year: Int): TimePeriodStats {
+    private suspend fun getYearStats(
+        year: Int,
+        resetTime: LocalTime
+    ): TimePeriodStats {
         val yearStart = LocalDate(year, 1, 1)
         val yearEnd = LocalDate(year + 1, 1, 1)
-        return getStatsForPeriod(yearStart, yearEnd)
+        return getStatsForPeriod(yearStart, yearEnd, resetTime)
 
     }
 
@@ -144,16 +169,27 @@ class DefaultSubscribeOnStatsDataUseCase(
 
     private suspend fun getStatsForPeriod(
         start: LocalDate,
-        end: LocalDate
+        end: LocalDate,
+        resetTime: LocalTime
     ): TimePeriodStats {
         val timeZone = TimeZone.currentSystemDefault()
+        val resetTimeOffsetDuration = resetTime.toMillisecondOfDay().milliseconds
+        val startInstant = start.atStartOfDayIn(timeZone).plus(resetTimeOffsetDuration)
+        val endInstant = end.atStartOfDayIn(timeZone).plus(resetTimeOffsetDuration)
+
         val reviewsToDateMap = reviewHistoryRepository
-            .getReviews(
-                start.atStartOfDayIn(timeZone),
-                end.atStartOfDayIn(timeZone)
-            )
+            .getReviews(startInstant, endInstant)
             .map { historyItem ->
-                historyItem to historyItem.timestamp.toLocalDateTime(timeZone).date
+                val adjustedDateTime = historyItem.timestamp
+                    .toLocalDateTime(timeZone)
+                    .run {
+                        if (time < resetTime) {
+                            date.minus(1, DateTimeUnit.DAY)
+                        } else {
+                            date
+                        }
+                    }
+                historyItem to adjustedDateTime
             }
 
         val dateToReviewsMap = reviewsToDateMap

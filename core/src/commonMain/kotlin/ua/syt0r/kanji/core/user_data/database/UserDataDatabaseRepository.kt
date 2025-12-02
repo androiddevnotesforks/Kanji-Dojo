@@ -2,6 +2,7 @@ package ua.syt0r.kanji.core.user_data.database
 
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalTime
 import ua.syt0r.kanji.core.srs.SrsCardKey
 import ua.syt0r.kanji.core.srs.fsrs.FsrsCard
 import kotlin.time.Duration
@@ -64,7 +65,7 @@ interface ReviewHistoryRepository {
     suspend fun getTotalReviewCount(key: String, practiceType: Long): Long
     suspend fun getUniqueReviewItemsCount(practiceTypes: List<Long>): Long
     suspend fun getTotalPracticeTime(singleReviewDurationLimit: Long): Duration
-    suspend fun getStreaks(): List<StreakData>
+    suspend fun getStreaks(timeOffset: LocalTime): List<StreakData>
     suspend fun getReviewHistoryStatsForKeys(
         keys: List<String>
     ): Map<String, ReviewHistoryStatItem>

@@ -51,8 +51,7 @@ import kotlin.time.Duration.Companion.days
 interface SubscribeOnGeneralDashboardScreenDataUseCase {
 
     operator fun invoke(
-        coroutineScope: CoroutineScope,
-        lifecycleState: StateFlow<LifecycleState>
+        coroutineScope: CoroutineScope, lifecycleState: StateFlow<LifecycleState>
     ): Flow<RefreshableData<ScreenState.Loaded>>
 
 }
@@ -227,7 +226,8 @@ class DefaultSubscribeOnGeneralDashboardScreenDataUseCase(
             return date in start..end
         }
 
-        val streaks = reviewHistoryRepository.getStreaks()
+        val resetTime = preferencesRepository.dailyResetTime.get()
+        val streaks = reviewHistoryRepository.getStreaks(resetTime)
         val longestStreak = streaks.maxByOrNull { it.length }
 
         val currentDate = timeUtils.getCurrentDate()
@@ -248,8 +248,7 @@ class DefaultSubscribeOnGeneralDashboardScreenDataUseCase(
         } while (date <= currentDate)
 
         val currentStreakSearchDates = setOf(
-            currentDate,
-            currentDate.minus(1, DateTimeUnit.DAY)
+            currentDate, currentDate.minus(1, DateTimeUnit.DAY)
         )
         val currentStreak = streaks.find { streak ->
             currentStreakSearchDates.any { streak.includesDate(it) }

@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.LocalTime
 import kotlinx.datetime.format.byUnicodePattern
 import kotlinx.serialization.json.Json
 import ua.syt0r.kanji.core.japanese.CharacterClassification
@@ -94,6 +95,7 @@ fun Modifier.clickable(action: (() -> Unit)?): Modifier {
 
 val CommonDateFormat = LocalDate.Format { byUnicodePattern("uuuu/MM/dd") }
 val CommonDateTimeFormat = LocalDateTime.Format { byUnicodePattern("uuuu/MM/dd HH:mm") }
+val CommonTimeFormat = LocalTime.Format { byUnicodePattern("HH:mm") }
 
 fun TextStyle.copyCentered(): TextStyle = copy(
     lineHeightStyle = LineHeightStyle(
