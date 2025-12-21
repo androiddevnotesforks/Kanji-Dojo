@@ -49,6 +49,17 @@ fun VersionChangeDialog(
             LazyColumn(
                 modifier = Modifier.weight(1f).fillMaxWidth()
             ) {
+                version("2.2.0", LocalDate(2025, 12, 22)){
+                    append(
+                        """
+                        - Added daily SRS reset time in Settings
+                        - Added option to show kana reading during vocab writing (by cartr)
+                        - Fixed wrong vocab reading used in practice for some edited vocab cards
+                        - Fixed dropdown behaviour on vocab edit screen
+                        - Fixed issue with inability to switch account without app restart
+                        """.trimIndent()
+                    )
+                }
                 version("2.1.9", LocalDate(2025, 8, 15)) {
                     append(
                         """
