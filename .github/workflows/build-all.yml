@@ -66,7 +66,7 @@ jobs:
           retention-days: 1
 
   build-desktop-mac-intel:
-    runs-on: macos-13
+    runs-on: macos-15-intel
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -94,7 +94,7 @@ jobs:
 
 
   build-desktop-mac-arm:
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
