@@ -56,7 +56,7 @@ fun VersionChangeDialog(
                         - Added option to show kana reading during vocab writing (by cartr)
                         - Fixed wrong vocab reading used in practice for some edited vocab cards
                         - Fixed dropdown behaviour on vocab edit screen
-                        - Fixed issue with inability to switch account without app restart
+                        - Fixed issue preventing account switching without app restart
                         """.trimIndent()
                     )
                 }
