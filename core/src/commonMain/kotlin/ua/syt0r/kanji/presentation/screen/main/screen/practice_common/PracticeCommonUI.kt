@@ -571,7 +571,7 @@ fun PracticeSummaryContainer(
     practiceDuration: Duration,
     summaryItemsCount: Int,
     onFinishClick: () -> Unit,
-    headerContent: @Composable RowScope.() -> Unit = {},
+    extraHeaderContent: @Composable RowScope.() -> Unit = {},
     content: @Composable ColumnScope.() -> Unit
 ) {
 
@@ -610,7 +610,7 @@ fun PracticeSummaryContainer(
                             data = summaryItemsCount.toString()
                         )
 
-                        headerContent()
+                        extraHeaderContent()
 
                     }
                 }

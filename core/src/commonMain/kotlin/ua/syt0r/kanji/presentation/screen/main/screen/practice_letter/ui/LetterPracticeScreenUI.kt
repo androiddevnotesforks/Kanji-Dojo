@@ -8,7 +8,6 @@ import androidx.compose.animation.core.updateTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,14 +16,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
@@ -35,7 +32,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -47,20 +43,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.intl.Locale
-import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.toLowerCase
-import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.toSize
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import ua.syt0r.kanji.Res
@@ -70,7 +58,6 @@ import ua.syt0r.kanji.core.japanese.KanaReading
 import ua.syt0r.kanji.core.toRadians
 import ua.syt0r.kanji.practice_summary_header_accuracy
 import ua.syt0r.kanji.presentation.common.MultiplatformBackHandler
-import ua.syt0r.kanji.presentation.common.copyCentered
 import ua.syt0r.kanji.presentation.common.resolveString
 import ua.syt0r.kanji.presentation.common.resources.string.resolveString
 import ua.syt0r.kanji.presentation.common.ui.FancyLoading
@@ -95,7 +82,6 @@ import ua.syt0r.kanji.presentation.screen.main.screen.practice_letter.data.Writi
 import ua.syt0r.kanji.presentation.screen.main.screen.practice_letter.data.WritingPracticeInputMode
 import kotlin.math.absoluteValue
 import kotlin.math.cos
-import kotlin.math.roundToInt
 
 @Composable
 fun LetterPracticeScreenUI(
@@ -370,9 +356,12 @@ private fun SummaryState(
         practiceDuration = screenState.duration,
         summaryItemsCount = screenState.items.size,
         onFinishClick = onFinishClick,
-        headerContent = {
+        extraHeaderContent = {
             if (screenState.accuracy != null) {
-                AccuracyPracticeSummaryInfoLabel(screenState.accuracy.roundToInt())
+                PracticeSummaryInfoLabel(
+                    title = stringResource(Res.string.practice_summary_header_accuracy),
+                    data = "${screenState.accuracy}%"
+                )
             }
         }
     ) {
@@ -396,68 +385,6 @@ private fun SummaryState(
 
     }
 
-}
-
-@Composable
-private fun RowScope.AccuracyPracticeSummaryInfoLabel(accuracy: Int) {
-    PracticeSummaryInfoLabel(
-        title = stringResource(Res.string.practice_summary_header_accuracy),
-        data = "$accuracy%"
-    )
-
-    val mark = when {
-        accuracy >= 90 -> "S"
-        accuracy >= 80 -> "A"
-        accuracy >= 70 -> "B"
-        accuracy >= 60 -> "C"
-        accuracy >= 50 -> "D"
-        else -> "F"
-    }
-
-    val animationProgress = remember { Animatable(0f) }
-    LaunchedEffect(Unit) { animationProgress.animateTo(1f, tween(600)) }
-
-    val markColor = MaterialTheme.colorScheme.primary
-
-    val textMeasurer = rememberTextMeasurer()
-    val markTextStyle = MaterialTheme.typography.headlineSmall.copyCentered()
-    val result = textMeasurer.measure(mark, markTextStyle)
-    val strokeWidth = 4.dp
-    val extraPadding = 4.dp
-
-    val sizeDp = with(LocalDensity.current) {
-        result.size.toSize().maxDimension.toDp()
-            .plus(extraPadding).let { DpSize(it, it) }
-    }
-
-    Canvas(
-        modifier = Modifier
-            .size(sizeDp)
-            .align(Alignment.CenterVertically)
-    ) {
-
-        drawArc(
-            color = markColor,
-            startAngle = -90f,
-            sweepAngle = (270f) * animationProgress.value,
-            useCenter = false,
-            topLeft = Offset.Zero,
-            style = Stroke(
-                width = strokeWidth.toPx(),
-                cap = StrokeCap.Round
-            )
-        )
-
-        drawText(
-            textLayoutResult = result,
-            color = markColor,
-            topLeft = Offset(
-                (size.width - result.size.width) / 2f,
-                size.height / 2f - result.size.height / 2f,
-            )
-        )
-
-    }
 }
 
 @Composable
