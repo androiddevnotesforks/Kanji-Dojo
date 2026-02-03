@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
 import kotlinx.datetime.toLocalDateTime
@@ -29,6 +30,8 @@ abstract class SrsManager<ItemType, PracticeType, Deck>(
 
     private var cache: SrsDecksData<Deck, PracticeType>? = null
 
+    private var cachedResetTime: LocalTime? = null
+
     private val srsCardComparator: Comparator<SrsCardData> =
         compareByDescending { (_, srsCardData) -> srsCardData?.lastReview }
 
@@ -43,6 +46,7 @@ abstract class SrsManager<ItemType, PracticeType, Deck>(
             appPreferences.dailyResetTime.onModified
         )
             .onEach {
+                cachedResetTime = null
                 cache = null
                 _dataChangeFlow.emit(Unit)
             }
@@ -74,6 +78,7 @@ abstract class SrsManager<ItemType, PracticeType, Deck>(
     }
 
     protected suspend fun getDecksInternal(): SrsDecksData<Deck, PracticeType> {
+        cachedResetTime = cachedResetTime ?: appPreferences.dailyResetTime.get()
         cache?.let { return it }
 
         val deckDescriptors: List<SrsDeckDescriptor<ItemType, PracticeType>>
@@ -136,9 +141,9 @@ abstract class SrsManager<ItemType, PracticeType, Deck>(
         ).also { cache = it }
     }
 
-    protected suspend fun Instant.toSrsDate(): LocalDate {
+    protected fun Instant.toSrsDate(): LocalDate {
+        val resetTime = cachedResetTime ?: LocalTime(0,0)
         val localDateTime = toLocalDateTime(TimeZone.currentSystemDefault())
-        val resetTime = appPreferences.dailyResetTime.get()
         return if (localDateTime.time < resetTime) {
             localDateTime.date.minus(1, DateTimeUnit.DAY)
         } else {
@@ -146,7 +151,7 @@ abstract class SrsManager<ItemType, PracticeType, Deck>(
         }
     }
 
-    protected suspend fun getSrsStatus(srsCard: SrsCard?): SrsItemStatus {
+    protected fun getSrsStatus(srsCard: SrsCard?): SrsItemStatus {
         val expectedReviewTime = srsCard?.run { lastReview?.plus(interval) }
         val expectedReviewDate = expectedReviewTime?.toSrsDate()
         val currentDate = timeUtils.now().toSrsDate()
@@ -157,7 +162,7 @@ abstract class SrsManager<ItemType, PracticeType, Deck>(
         }
     }
 
-    protected suspend fun PracticeTypeDeckData<ItemType>.toProgress(
+    protected fun PracticeTypeDeckData<ItemType>.toProgress(
         deckLimit: DeckLimit,
         practiceType: PracticeType,
         today: LocalDate
