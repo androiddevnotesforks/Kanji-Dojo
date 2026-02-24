@@ -1,20 +1,18 @@
 package ua.syt0r.kanji.presentation.screen.main.screen.account
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Login
+import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.CreditCard
@@ -22,6 +20,7 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.OpenInBrowser
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -182,6 +181,13 @@ fun AccountScreenSignedIn(
                             }
                         }
                     )
+                    AppDropdownMenuItem(
+                        onClick = signOut,
+                        {
+                            Icon(Icons.AutoMirrored.Outlined.Logout, null)
+                            Text(resolveString { account.signOutButton })
+                        }
+                    )
                 }
 
                 IconButton(
@@ -194,10 +200,7 @@ fun AccountScreenSignedIn(
         )
 
         if (showSubscriptionInfo) {
-            SubscriptionInfoListItem(
-                subscriptionInfo = subscriptionInfo,
-                refresh = refresh
-            )
+            SubscriptionInfoListItem(subscriptionInfo)
         }
 
         extraContent?.invoke(this)
@@ -205,10 +208,11 @@ fun AccountScreenSignedIn(
         Spacer(Modifier.weight(1f))
 
         InvertedButton(
-            onClick = signOut,
+            onClick = refresh,
             modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)
         ) {
-            Text(text = resolveString { account.signOutButton })
+            Icon(Icons.Outlined.Refresh, null)
+            Text(text = "Refresh")
         }
 
     }
@@ -217,8 +221,7 @@ fun AccountScreenSignedIn(
 
 @Composable
 fun SubscriptionInfoListItem(
-    subscriptionInfo: SubscriptionInfo,
-    refresh: () -> Unit
+    subscriptionInfo: SubscriptionInfo
 ) {
     val headlineText: String
     val supportText: String?
@@ -259,17 +262,6 @@ fun SubscriptionInfoListItem(
             Column {
                 Text(headlineText)
                 supportText?.let { Text(it) }
-            }
-        },
-        trailingContent = {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(MaterialTheme.shapes.medium)
-                    .clickable(onClick = refresh)
-                    .wrapContentSize()
-            ) {
-                Icon(Icons.Default.Refresh, null)
             }
         }
     )
