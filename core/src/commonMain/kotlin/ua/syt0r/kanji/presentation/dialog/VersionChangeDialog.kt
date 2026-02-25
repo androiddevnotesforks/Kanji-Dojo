@@ -49,7 +49,17 @@ fun VersionChangeDialog(
             LazyColumn(
                 modifier = Modifier.weight(1f).fillMaxWidth()
             ) {
-                version("2.2.0", LocalDate(2025, 12, 22)){
+                version("2.2.1", LocalDate(2026, 2, 25)) {
+                    append(
+                        """
+                        - Performance optimization (by kedtol)
+                        - Removed grades on the writing summary screen
+                        - Increased default desktop window size
+                        - Small update of the Account screen                        
+                        """.trimIndent()
+                    )
+                }
+                version("2.2.0", LocalDate(2025, 12, 22)) {
                     append(
                         """
                         - Added daily SRS reset time in Settings

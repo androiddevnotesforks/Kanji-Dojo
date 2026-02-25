@@ -1,0 +1,4 @@
+- Performance optimization (by kedtol)
+- Removed grades on the writing summary screen
+- Increased default desktop window size
+- Small update of the Account screen
