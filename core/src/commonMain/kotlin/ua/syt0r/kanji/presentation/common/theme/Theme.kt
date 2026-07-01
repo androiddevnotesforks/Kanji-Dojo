@@ -90,7 +90,12 @@ private val DarkThemeColors = darkColorScheme(
     outline = md_theme_dark_outline,
     inverseOnSurface = md_theme_dark_inverseOnSurface,
     inverseSurface = md_theme_dark_inverseSurface,
-    inversePrimary = md_theme_dark_inversePrimary,
+)
+
+private val AmoledThemeColors = DarkThemeColors.copy(
+    background = amoled_theme_background,
+    surface = amoled_theme_surface,
+    surfaceDim = amoledSurfaceDim,
 )
 
 class ExtraColorsScheme(
@@ -126,10 +131,13 @@ val MaterialTheme.extraColorScheme: ExtraColorsScheme
 @Composable
 fun AppTheme(
     useDarkTheme: Boolean = isSystemInDarkTheme(),
+    useAmoledTheme: Boolean = false,
     orientation: Orientation = Orientation.Portrait,
     content: @Composable () -> Unit
 ) {
-    val (colors, extraColors) = if (!useDarkTheme) {
+    val (colors, extraColors) = if (useAmoledTheme) {
+        AmoledThemeColors to DarkExtraColorScheme
+    } else if (!useDarkTheme) {
         LightThemeColors to LightExtraColorScheme
     } else {
         DarkThemeColors to DarkExtraColorScheme
